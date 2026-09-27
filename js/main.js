@@ -402,6 +402,51 @@
     });
   }
 
+  /* Nhãn bay vòng quanh thẻ hồ sơ (quỹ đạo elip, có chiều sâu 3D) */
+  let orbitMeasure = () => {};
+  function initOrbit() {
+    const vis = $('.hero__visual'), card = vis && $('.profile-card', vis);
+    const all = vis ? $$('.float-badge', vis) : [];
+    if (!card || !all.length || reduceMotion || T.animations === false) return;
+    vis.classList.add('orbiting');
+    let geo = null, angle = -Math.PI / 2, paused = false, last = performance.now();
+    orbitMeasure = () => {
+      const list = all.filter(b => getComputedStyle(b).display !== 'none');
+      if (!list.length) { geo = null; return; }
+      list.forEach(b => { b._w = b.offsetWidth; b._h = b.offsetHeight; });
+      const bw = Math.max(...list.map(b => b._w)), bh = list[0]._h;
+      const cw = card.offsetWidth, ch = card.offsetHeight;
+      const cx = card.offsetLeft + cw / 2, cy = card.offsetTop + ch / 2;
+      // Chừa đủ chỗ để nhãn không chạy ra ngoài màn hình
+      const vr = vis.getBoundingClientRect(), mid = vr.left + cx;
+      const room = Math.min(mid, innerWidth - mid) - bw / 2 - 8;
+      const rx = Math.max(40, Math.min(cw / 2 + bw * 0.4, room));
+      const ry = ch / 2 + bh * 0.9;
+      geo = { cx, cy, rx, ry, list };
+    };
+    const tick = now => {
+      const dt = Math.min(50, now - last); last = now;
+      if (!paused && !document.hidden) angle += dt * (2 * Math.PI / 42000); // 42 giây một vòng
+      if (geo) {
+        const { cx, cy, rx, ry, list } = geo, n = list.length;
+        for (let i = 0; i < n; i++) {
+          const b = list[i], a = angle + i * 2 * Math.PI / n, depth = (Math.sin(a) + 1) / 2; // 0 = phía sau, 1 = phía trước
+          const x = cx + rx * Math.cos(a) - b._w / 2, y = cy + ry * Math.sin(a) - b._h / 2;
+          b.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + (0.82 + depth * 0.18).toFixed(3) + ')';
+          b.style.opacity = (0.55 + depth * 0.45).toFixed(3);
+          b.style.zIndex = depth > 0.5 ? 3 : 0;
+        }
+      }
+      requestAnimationFrame(tick);
+    };
+    vis.addEventListener('pointerenter', () => { paused = true; });
+    vis.addEventListener('pointerleave', () => { paused = false; });
+    window.addEventListener('resize', () => orbitMeasure());
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => orbitMeasure());
+    window.addEventListener('load', () => orbitMeasure());
+    orbitMeasure(); setTimeout(orbitMeasure, 1300); requestAnimationFrame(tick);
+  }
+
   function initRipple() {
     document.addEventListener('pointerdown', e => {
       const b = e.target.closest('.btn'); if (!b) return;
@@ -494,7 +539,7 @@
       const k = b.dataset.skin; wrap.classList.remove('open');
       if (k === T.skin) return;
       try { if (k === D.theme.skin) localStorage.removeItem(PREVIEW_KEY); else localStorage.setItem(PREVIEW_KEY, k); } catch (err) { /* noop */ }
-      circleTransition(e, () => { T = themeFor(k); applyTheme(); initBackground(); render(); });
+      circleTransition(e, () => { T = themeFor(k); applyTheme(); initBackground(); render(); setTimeout(orbitMeasure, 80); });
       toast('🎮 Phong cách: ' + SKINS[k].game);
     });
     document.addEventListener('click', e => { if (!e.composedPath().includes(wrap)) wrap.classList.remove('open'); });
@@ -893,6 +938,7 @@
   initReveal();
   initTyping();
   initTilt();
+  initOrbit();
   initRipple();
   initScroll();
   initMenu();
