@@ -311,9 +311,6 @@
           { key: 'general.siteName', label: 'Tên website', type: 'text' },
           { key: 'general.logoText', label: 'Chữ trên logo', type: 'text', hint: 'Chữ cái đầu sẽ hiển thị trong ô logo' },
           { key: 'general.tagline', label: 'Khẩu hiệu (tagline)', type: 'text', full: true },
-          { key: 'general.footerText', label: 'Giới thiệu ngắn ở chân trang', type: 'textarea', rows: 2 },
-          { key: 'general.copyright', label: 'Dòng bản quyền cuối trang', type: 'text', full: true, hint: 'Viết {year} để tự hiện năm hiện tại. VD: © {year} NOVA BOOST. Mọi quyền được bảo lưu.' },
-          { key: 'general.showAdminLink', label: 'Hiện liên kết “Quản trị” ở chân trang', type: 'toggle' }
         ], draft)) +
         panel('Khi gửi link website (Facebook, Zalo, Messenger, Google)', 'send', 'Tiêu đề, mô tả và ảnh hiện ra trong khung xem trước khi ai đó gửi link trang của bạn.',
           '<div class="grid-2" style="align-items:start"><div>' + form([
@@ -507,6 +504,30 @@
           '<p class="field__hint" style="margin-top:10px">Mẹo: với Zalo, Messenger, Gọi điện, Email, Facebook… để trống ô Link thì tự lấy từ “Thông tin liên hệ” ở trên. Bấm con mắt để ẩn/hiện từng mục.</p>');
       },
       after() { bindCollection(CFG.quick, () => go('contact', true)); }
+    },
+
+    footer: {
+      label: 'Chân trang', icon: 'layout', group: 'Nội dung', desc: 'Giới thiệu, các cột link, cộng đồng, bản quyền',
+      render() {
+        const cols = draft.footer.columns || [];
+        return panel('Phần giới thiệu (cột bên trái)', 'user', 'Logo và tên lấy từ Nội dung chung.', form([
+          { key: 'general.footerText', label: 'Đoạn giới thiệu ngắn', type: 'textarea', rows: 3 },
+          { key: 'footer.showSocials', label: 'Hiện icon mạng xã hội', type: 'toggle', hint: 'Link Facebook, YouTube, TikTok, Instagram lấy từ mục Liên hệ' }
+        ], draft)) +
+        panel('Các cột', 'layout', 'Thêm, đổi tên, ẩn/hiện, kéo thả sắp xếp. Loại “Dịch vụ” và “Liên hệ” tự lấy nội dung; loại “Danh sách link” bạn tự thêm từng mục bên dưới.', collection(CFG.fcols)) +
+        cols.map((col, i) => col.type === 'links'
+          ? panel('Mục trong cột “' + (col.title || 'Chưa đặt tên') + '”', 'globe', col.visible === false ? 'Cột này đang ẩn.' : 'Mỗi mục gồm biểu tượng, tên, mô tả (nếu có) và link.', collection(linkCfg(i)))
+          : '').join('') +
+        panel('Dòng cuối trang', 'shield', '', form([
+          { key: 'general.copyright', label: 'Dòng bản quyền', type: 'text', full: true, hint: 'Viết {year} để tự hiện năm hiện tại. VD: © {year} NOVA BOOST. Mọi quyền được bảo lưu.' },
+          { key: 'general.showAdminLink', label: 'Hiện liên kết “Quản trị”', type: 'toggle', hint: 'Nên tắt để khách không thấy đường vào trang quản trị' }
+        ], draft));
+      },
+      after() {
+        const rr = () => go('footer', true);
+        bindCollection(CFG.fcols, rr);
+        (draft.footer.columns || []).forEach((col, i) => { if (col.type === 'links') bindCollection(linkCfg(i), rr); });
+      }
     },
 
     music: {
@@ -709,7 +730,37 @@
 
   /* ---------------- Cấu hình các danh sách ---------------- */
   const QUICK_COLORS = [['', 'Tự động theo biểu tượng'], ['primary', 'Màu chính của website'], ['#22c55e', 'Xanh lá'], ['#0068ff', 'Xanh Zalo'], ['#1877f2', 'Xanh Facebook'], ['#229ed9', 'Xanh Telegram'], ['#5865f2', 'Tím Discord'], ['#ef4444', 'Đỏ'], ['#f59e0b', 'Cam'], ['#ec4899', 'Hồng'], ['#111111', 'Đen']];
+  const FOOTER_ICONS = Array.from(new Set(CONTACT_ICONS.concat(SERVICE_ICONS)));
+  const COL_TYPES = [['links', 'Danh sách link tự do'], ['services', 'Dịch vụ (tự động)'], ['contact', 'Liên hệ (tự động)']];
+  function linkCfg(i) {
+    return {
+      path: 'footer.columns.' + i + '.items', name: 'mục',
+      make: () => ({ icon: 'globe', label: '', desc: '', url: '' }),
+      title: it => it.label || '(chưa đặt tên)', sub: it => (it.url || 'Chưa có link — chỉ hiện chữ') + (it.desc ? ' • ' + it.desc : ''),
+      iconOf: it => icon(it.icon || 'globe'),
+      fields: [
+        { key: 'label', label: 'Tên', type: 'text', required: true, placeholder: 'VD: Discord, Nhóm Facebook…' },
+        { key: 'desc', label: 'Mô tả (nếu có)', type: 'text', placeholder: 'VD: Giao lưu & nhận quà' },
+        { key: 'url', label: 'Link', type: 'text', full: true, placeholder: 'https://…', hint: 'Để trống nếu chỉ muốn hiện chữ' },
+        { key: 'icon', label: 'Biểu tượng', type: 'icon', icons: FOOTER_ICONS }
+      ]
+    };
+  }
   const CFG = {
+    fcols: {
+      path: 'footer.columns', name: 'cột', toggleKey: 'visible',
+      make: () => ({ id: Store.uid('fc'), title: 'Cột mới', type: 'links', limit: 5, visible: true, items: [] }),
+      title: it => it.title || '(chưa đặt tên)',
+      sub: it => (COL_TYPES.find(t => t[0] === it.type) || COL_TYPES[0])[1] + (it.type === 'links' ? ' • ' + (it.items || []).length + ' mục' : it.type === 'services' ? ' • ' + (it.limit || 5) + ' dịch vụ đầu' : ''),
+      iconOf: it => icon(it.type === 'services' ? 'layers' : it.type === 'contact' ? 'phone' : 'globe'),
+      fields: it => [{ key: 'title', label: 'Tiêu đề cột', type: 'text', required: true }, { key: 'type', label: 'Loại cột', type: 'select', options: COL_TYPES }]
+        .concat(it.type === 'services' ? [{ key: 'limit', label: 'Số dịch vụ hiển thị', type: 'number' }] : [])
+        .concat([{ key: 'visible', label: 'Hiển thị', type: 'toggle', full: false }]),
+      onAdd(rerender) {
+        if ((draft.footer.columns || []).length >= 5) return toast('Tối đa 5 cột để chân trang không bị chật', 'err');
+        editItem(CFG.fcols, -1, rerender);
+      }
+    },
     quick: {
       path: 'contact.quick.items', name: 'mục liên hệ', toggleKey: 'visible',
       make: () => ({ id: Store.uid('q'), icon: 'message', label: '', desc: '', url: '', color: '', visible: true }),

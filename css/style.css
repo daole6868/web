@@ -478,7 +478,17 @@ body.has-glow #cursor-glow { opacity: 1; }
 
 /* ---------- 17. Footer ---------- */
 .footer { position: relative; padding: 70px 0 30px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--bg-2) 50%, transparent); }
-.footer__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; }
+.footer__grid { display: grid; grid-template-columns: 1.3fr repeat(var(--fcols, 2), minmax(0, 1fr)); gap: 40px; }
+/* Cột danh sách link tự do (VD: Cộng đồng) */
+.footer ul.flinks { gap: 12px; }
+.footer .flink { display: flex; align-items: center; gap: 10px; color: var(--muted); transition: color .3s, transform .3s var(--ease); }
+.footer a.flink:hover { color: var(--text); transform: translateX(3px); }
+.flink__ico { width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--radius-sm); display: grid; place-items: center; background: var(--surface); border: 1px solid var(--border); color: var(--primary); transition: .3s var(--ease); }
+.footer a.flink:hover .flink__ico { background: var(--grad); color: var(--on-primary); border-color: transparent; }
+.flink__ico .ico { width: 16px; height: 16px; }
+.flink__txt { min-width: 0; line-height: 1.3; }
+.flink__txt b { display: block; font-size: .9rem; font-weight: 600; color: var(--text); }
+.flink__txt small { display: block; font-size: .76rem; color: var(--muted); }
 .footer p { color: var(--muted); max-width: 360px; }
 .footer h4 { font-size: 1rem; margin-bottom: 16px; }
 .footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
@@ -671,7 +681,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 0; bo
   .stats { grid-template-columns: repeat(2, 1fr); }
   .process { grid-template-columns: repeat(2, 1fr); row-gap: 40px; }
   .process::before, .process__line { display: none; }
-  .footer__grid { grid-template-columns: 1fr 1fr; }
+  .footer__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer__grid > :first-child { grid-column: 1 / -1; }
 }
 @media (max-width: 640px) {
@@ -710,6 +720,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 0; bo
   .review__card { padding: 32px 22px; }
   .form { padding: 24px; }
   .footer__grid { grid-template-columns: 1fr; }
+  .footer { padding-bottom: 96px; } /* chừa chỗ cho nút nhạc & nút lên đầu trang */
   .announce { padding: 10px 40px 10px 16px; text-align: left; }
   .modal__box { padding: 28px 22px; }
 }

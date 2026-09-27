@@ -274,21 +274,37 @@
   }
 
   function renderFooter() {
-    const g = D.general, c = D.contact, so = c.socials || {};
+    const g = D.general, c = D.contact, so = c.socials || {}, F = D.footer || {};
     const socials = ['facebook', 'youtube', 'tiktok', 'instagram'].filter(k => so[k]);
-    const svc = D.services.filter(s => s.visible !== false).slice(0, 5);
-    $('#footer').innerHTML = '<div class="container"><div class="footer__grid">' +
-      '<div><a href="#hero" class="logo">' + $('#logo').innerHTML + '</a><p style="margin-top:16px">' + esc(g.footerText) + '</p>' +
-        (socials.length ? '<div class="socials">' + socials.map(k => '<a href="' + esc(so[k]) + '" target="_blank" rel="noopener" aria-label="' + k + '">' + icon(k) + '</a>').join('') + '</div>' : '') + '</div>' +
-      '<div><h4>' + esc(sec.services ? sec.services.name : 'Dịch vụ') + '</h4><ul>' + svc.map(s => '<li><a href="#services">' + esc(s.title) + '</a></li>').join('') + '</ul></div>' +
-      '<div><h4>' + esc(sec.contact ? sec.contact.name : 'Liên hệ') + '</h4><ul>' +
-        (c.phone ? '<li><a href="' + telHref(c.phone) + '">' + icon('phone') + esc(c.phone) + '</a></li>' : '') +
-        (c.email ? '<li><a href="mailto:' + esc(c.email) + '">' + icon('mail') + esc(c.email) + '</a></li>' : '') +
-        (c.address ? '<li>' + icon('map') + esc(c.address) + '</li>' : '') +
-        (c.hours ? '<li>' + icon('clock') + esc(c.hours) + '</li>' : '') + '</ul></div>' +
+    const cols = (F.columns || []).filter(col => col.visible !== false);
+    const ext = u => /^https?:/i.test(u) ? ' target="_blank" rel="noopener"' : '';
+    const colHTML = col => {
+      let body = '';
+      if (col.type === 'services') {
+        body = D.services.filter(s => s.visible !== false).slice(0, Math.max(1, Number(col.limit) || 5))
+          .map(s => '<li><a href="#services">' + esc(s.title) + '</a></li>').join('');
+      } else if (col.type === 'contact') {
+        body = (c.phone ? '<li><a href="' + telHref(c.phone) + '">' + icon('phone') + esc(c.phone) + '</a></li>' : '') +
+          (c.email ? '<li><a href="mailto:' + esc(c.email) + '">' + icon('mail') + esc(c.email) + '</a></li>' : '') +
+          (c.address ? '<li>' + icon('map') + esc(c.address) + '</li>' : '') +
+          (c.hours ? '<li>' + icon('clock') + esc(c.hours) + '</li>' : '');
+      } else {
+        body = (col.items || []).filter(it => it.label).map(it => {
+          const inner = '<span class="flink__ico">' + icon(it.icon || 'globe') + '</span><span class="flink__txt"><b>' + esc(it.label) + '</b>' + (it.desc ? '<small>' + esc(it.desc) + '</small>' : '') + '</span>';
+          return '<li>' + (it.url ? '<a class="flink" href="' + esc(it.url) + '"' + ext(it.url) + '>' + inner + '</a>' : '<span class="flink">' + inner + '</span>') + '</li>';
+        }).join('');
+      }
+      return body ? '<div><h4>' + esc(col.title) + '</h4><ul' + (col.type === 'links' ? ' class="flinks"' : '') + '>' + body + '</ul></div>' : '';
+    };
+    const colsHTML = cols.map(colHTML).filter(Boolean);
+    $('#footer').innerHTML = '<div class="container"><div class="footer__grid" style="--fcols:' + colsHTML.length + '">' +
+      '<div><a href="#hero" class="logo">' + $('#logo').innerHTML + '</a>' + (g.footerText ? '<p style="margin-top:16px">' + esc(g.footerText) + '</p>' : '') +
+        (F.showSocials !== false && socials.length ? '<div class="socials">' + socials.map(k => '<a href="' + esc(so[k]) + '" target="_blank" rel="noopener" aria-label="' + k + '">' + icon(k) + '</a>').join('') + '</div>' : '') + '</div>' +
+      colsHTML.join('') +
       '</div><div class="footer__bottom"><span>' + esc(String(g.copyright || '© {year} ' + g.siteName).replace(/\{year\}/g, new Date().getFullYear())) + '</span>' +
       (g.showAdminLink ? '<a href="admin.html">' + icon('lock') + ' Quản trị</a>' : '') + '</div></div>';
   }
+
 
   /* Thanh liên hệ nhanh bên cạnh màn hình (thu gọn thành 1 nút nhỏ) */
   let dockPeek = () => {};

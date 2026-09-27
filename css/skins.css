@@ -290,3 +290,4 @@ html[data-skin="nte"] .hero__wm { -webkit-text-stroke-color: rgba(255, 79, 163, 
   .marquee span { font-size: .9rem; }
   html[data-skin="zzz"] .hero::before, html[data-skin="zzz"] .hero::after { height: 30px; }
 }
+html[data-skin="endfield"] .flink__ico { color: var(--text); }

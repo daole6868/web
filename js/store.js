@@ -294,6 +294,20 @@
       socials: { facebook: 'https://facebook.com/', youtube: 'https://youtube.com/', tiktok: 'https://tiktok.com/', instagram: '' }
     },
 
+    footer: {
+      showSocials: true,       // icon mạng xã hội dưới phần giới thiệu (lấy link từ mục Liên hệ)
+      columns: [
+        { id: 'fc1', title: 'Dịch vụ', type: 'services', limit: 5, visible: true, items: [] },
+        { id: 'fc2', title: 'Liên hệ', type: 'contact', visible: true, items: [] },
+        { id: 'fc3', title: 'Cộng đồng', type: 'links', visible: true, items: [
+          { icon: 'discord', label: 'Discord', desc: 'Giao lưu & nhận quà', url: 'https://discord.gg/' },
+          { icon: 'facebook', label: 'Nhóm Facebook', desc: 'Cập nhật ưu đãi mới', url: 'https://facebook.com/groups/' },
+          { icon: 'tiktok', label: 'TikTok', desc: 'Video kết quả cày thuê', url: 'https://tiktok.com/' },
+          { icon: 'send', label: 'Kênh Telegram', desc: 'Thông báo sự kiện', url: 'https://t.me/' }
+        ] }
+      ]
+    },
+
     music: {
       enabled: true,
       autoplay: false,
