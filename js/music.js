@@ -216,6 +216,35 @@
     }
   };
 
+  // Nhạc phiêu lưu hoành tráng (hợp phong cách fantasy / RPG)
+  PRESETS.epic = {
+    bpm: 84, swing: 0,
+    chords: [[50, 53, 57], [46, 50, 53], [53, 57, 60], [48, 52, 55]], // Dm Bb F C
+    step(E, bus, t, i, sx) {
+      const s = i % 16, bar = Math.floor(i / 16) % 4, ch = this.chords[bar];
+      if (s === 0) { E.pad(bus, t, ch.map(m => m + 12).concat([ch[0] + 24]), sx * 17, 0.03); E.bass(bus, t, ch[0] - 12, sx * 15, 0.3); }
+      if (s === 0 || s === 8) E.kick(bus, t, 0.55);
+      if (bar === 3 && s >= 12) E.kick(bus, t, 0.25 + (s - 12) * 0.08);
+      if (s % 2 === 0) { const arp = [0, 1, 2, 1]; E.keys(bus, t, ch[arp[(s / 2) % 4]] + 24, sx * 3, 0.035, 0.6); }
+      if (s === 4 || s === 12) E.hat(bus, t, 0.03, true);
+      if (s % 8 === 0 && Math.random() < 0.5) E.bell(bus, t, rand([74, 77, 79, 81, 84]), 0.04);
+    }
+  };
+  // Synthwave đêm neon (hợp phong cách đô thị / cyber)
+  PRESETS.synthwave = {
+    bpm: 102, swing: 0,
+    chords: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], // Am F C G
+    step(E, bus, t, i, sx) {
+      const s = i % 16, bar = Math.floor(i / 16) % 4, ch = this.chords[bar];
+      if (s % 2 === 0) E.pluck(bus, t, ch[0] - 24 + (s % 4 === 2 ? 12 : 0), sx * 1.8, 0.09);
+      E.pluck(bus, t, ch[[0, 1, 2, 1][s % 4]] + 12 + (s >= 8 ? 12 : 0), sx * 1.2, 0.03);
+      if (s === 0 || s === 8) E.kick(bus, t, 0.7);
+      if (s === 4 || s === 12) E.snare(bus, t, 0.24);
+      if (s % 4 === 2) E.hat(bus, t, 0.05, true); else if (s % 2 === 1) E.hat(bus, t, 0.02);
+      if (s === 0) E.pad(bus, t, ch.map(m => m + 12), sx * 16, 0.02);
+    }
+  };
+
   /* ---------------- Trình phát ---------------- */
   const Player = {
     tracks: [], index: 0, playing: false, volume: 0.5, shuffle: false,
@@ -363,5 +392,5 @@
   };
 
   global.MusicPlayer = Player;
-  global.MUSIC_PRESETS = { lofi: 'Lofi Chill', ambient: 'Ambient Dream', piano: 'Piano Calm', upbeat: 'Upbeat Energy' };
+  global.MUSIC_PRESETS = { epic: 'Epic Adventure', synthwave: 'Neon Night', lofi: 'Lofi Chill', ambient: 'Ambient Dream', piano: 'Piano Calm', upbeat: 'Upbeat Energy' };
 })(window);

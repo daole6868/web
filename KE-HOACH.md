@@ -78,12 +78,29 @@ admin.html  (trang quản trị – có mật khẩu)
 
 ---
 
+## 3.6 Phong cách theo game (skin) — cho dịch vụ cày thuê
+
+Mỗi phong cách thay đổi đồng bộ: bảng màu nền, phông tiêu đề, kiểu thẻ, kiểu nút, nhãn tiêu đề mục, hiệu ứng nền và hoạ tiết trang trí.
+
+| Skin | Game | Màu | Phông tiêu đề | Hoạ tiết | Nền |
+|---|---|---|---|---|---|
+| Teyvat | Genshin Impact | Vàng kim `#d8b36a` + ngọc `#72c7c9` | Cormorant Garamond | Khung góc kép, ngôi sao ✦ | Sao + sao băng |
+| Solaris | Wuthering Waves | Ngọc `#5fe3d6` + vàng nhạt | Saira (in hoa) | Góc vát, vạch dọc tiêu đề | Sóng âm |
+| Astral Express | Honkai: Star Rail | Vàng `#f2c46d` + tím `#a58bff` | Exo 2 | Nhãn nghiêng, vé tàu | Tinh vân + sao |
+| New Eridu | Zenless Zone Zero | Chanh `#d4ff1e` + cam `#ff6a1a` | Barlow Condensed nghiêng | Bóng đổ khối, băng sọc, chấm halftone | Chấm tram |
+| Talos-II | Arknights: Endfield | Vàng `#ffd000` + đen | Chakra Petch + JetBrains Mono | Sọc cảnh báo, ngoặc [ ], khung góc | Lưới kỹ thuật + vạch quét |
+| Hethereau | Neverness to Everness | Hồng `#ff4fa3` + tím `#7a7dff` | Montserrat | Viền neon phát sáng, đường chân trời | Đèn bokeh |
+
+Tất cả phông chữ đều hỗ trợ tiếng Việt. Nhạc tích hợp có thêm 2 bản hợp chủ đề game: **Epic Adventure** (phiêu lưu) và **Neon Night** (synthwave).
+
+---
+
 ## 4. Hiệu ứng & chuyển động
 
 | Nhóm | Hiệu ứng |
 |---|---|
 | Khi mở trang | Màn hình tải (logo xoay + thanh chạy) • Màn hình chào "Vào trang" (tuỳ chọn, bật nhạc luôn) |
-| Nền | 4 kiểu: Mạng hạt kết nối (né chuột), Bầu trời sao (có sao băng), Tuyết rơi, Bong bóng • Đốm màu loang trôi chậm • Lưới mờ |
+| Nền | 7 kiểu: Mạng hạt kết nối (né chuột), Bầu trời sao (có sao băng), Sóng âm, Lưới kỹ thuật + vạch quét, Đèn neon bokeh, Tuyết rơi, Bong bóng • Đốm màu loang trôi chậm • Lưới mờ |
 | Khi cuộn | 5 kiểu xuất hiện: Trượt lên, Phóng to, Trượt ngang, Làm rõ từ mờ, Lật 3D • Xuất hiện so le từng thẻ • Thanh tiến trình đọc trên cùng • Header ẩn khi cuộn xuống, hiện khi cuộn lên |
 | Tương tác | Thẻ nghiêng 3D + đèn soi theo chuột • Nút có vệt sáng lướt + gợn sóng khi bấm • Vầng sáng đi theo con trỏ • Viên "pill" trượt theo menu |
 | Nội dung | Chữ gõ phím tự động • Bộ đếm số chạy • Đường quy trình chạy dần • Slider đánh giá • Accordion mượt |
@@ -123,6 +140,7 @@ web/
 ├── admin.html        Trang quản trị
 ├── css/
 │   ├── style.css     Hệ thống thiết kế + giao diện trang chính (dùng chung cho admin)
+│   ├── skins.css     6 phong cách giao diện theo game
 │   └── admin.css     Giao diện riêng trang quản trị
 ├── js/
 │   ├── store.js      Dữ liệu mặc định, lưu trữ (localStorage/IndexedDB), bộ icon

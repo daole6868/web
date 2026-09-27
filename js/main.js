@@ -5,7 +5,8 @@
   'use strict';
 
   const D = Store.load();
-  const T = D.theme;
+  const PREVIEW_KEY = 'mysite_skin_preview';
+  let T = themeFor(readPreview());
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const sec = {}; D.sections.forEach(s => { sec[s.id] = s; });
@@ -45,8 +46,27 @@
     return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [124, 92, 255];
   }
 
-  /* ---------------- Giao diện (theme) ---------------- */
+  /* ---------------- Giao diện (theme) & phong cách game (skin) ---------------- */
+  function readPreview() { try { return localStorage.getItem(PREVIEW_KEY); } catch (e) { return null; } }
+  // Khách "xem thử" 1 phong cách khác → lấy màu, phông, hiệu ứng mặc định của phong cách đó
+  function themeFor(skin) {
+    const own = SKINS[D.theme.skin] ? D.theme.skin : 'default';
+    if (!skin || !SKINS[skin] || skin === own) return Object.assign({}, D.theme, { skin: own });
+    const k = SKINS[skin];
+    return Object.assign({}, D.theme, { skin, primary: k.primary, accent: k.accent, font: k.font, effect: k.effect, radius: k.radius, mode: k.mode });
+  }
+  // Hiệu ứng vòng tròn lan toả từ vị trí bấm (dùng cho đổi sáng/tối và đổi phong cách)
+  function circleTransition(e, fn) {
+    if (!document.startViewTransition || reduceMotion) return fn();
+    const x = e ? e.clientX : innerWidth / 2, y = e ? e.clientY : innerHeight / 2;
+    const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    document.startViewTransition(fn).ready.then(() => {
+      document.documentElement.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + r + 'px at ' + x + 'px ' + y + 'px)'] },
+        { duration: 700, easing: 'cubic-bezier(.22,1,.36,1)', pseudoElement: '::view-transition-new(root)' });
+    }).catch(() => {});
+  }
   function currentMode() {
+    if (T.skin !== 'default') return T.mode === 'auto' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : T.mode;
     let pref = null;
     try { pref = localStorage.getItem(PREF_KEY); } catch (e) { /* noop */ }
     const mode = pref || T.mode;
@@ -62,11 +82,17 @@
     const r = document.documentElement.style;
     r.setProperty('--primary', T.primary);
     r.setProperty('--accent', T.accent);
+    r.setProperty('--on-primary', Store.onColor(T.primary));
     r.setProperty('--radius', T.radius + 'px');
-    r.setProperty('--font', "'" + T.font + "', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif");
+    const stack = ", system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+    const sk = SKINS[T.skin] || SKINS.default;
+    r.setProperty('--font', "'" + T.font + "'" + stack);
+    r.setProperty('--font-display', "'" + sk.display + "'" + stack);
+    document.documentElement.dataset.skin = T.skin;
+    $$('.hero__wm').forEach(el => { el.textContent = sk.watermark || ''; });
     document.body.dataset.reveal = reduceMotion ? 'none' : T.revealStyle;
     document.body.dataset.card = T.cardStyle;
-    if (T.cursorGlow && finePointer && !reduceMotion) document.body.classList.add('has-glow');
+    document.body.classList.toggle('has-glow', !!(T.cursorGlow && finePointer && !reduceMotion));
     setMode(currentMode());
     document.title = D.general.siteName + (D.general.tagline ? ' — ' + D.general.tagline : '');
     const md = $('meta[name="description"]'); if (md) md.content = D.general.seoDescription || '';
@@ -85,7 +111,9 @@
     const h = D.general.hero, c = D.contact;
     const floats = (h.floatBadges || []).slice(0, 3).map((b, i) => '<div class="float-badge fb-' + (i + 1) + '">' + esc(b) + '</div>').join('');
     const st = D.general.stats || [];
-    return '<section id="hero" class="hero hero--' + esc(T.heroLayout) + '"><div class="container hero__inner">' +
+    const games = D.general.games || [];
+    const loop = games.map(g => '<span>' + icon('gamepad') + esc(g) + '</span><i>✦</i>').join('');
+    return '<section id="hero" class="hero hero--' + esc(T.heroLayout) + (games.length ? ' has-marquee' : '') + '"><div class="hero__wm" aria-hidden="true"></div><div class="container hero__inner">' +
       '<div class="hero__content">' +
         (h.badge ? '<span class="badge reveal"><i class="dot"></i>' + esc(h.badge) + '</span>' : '') +
         '<h1 class="hero__title reveal" style="--d:.1s">' + esc(h.title) + ' <span class="grad-text">' + esc(h.highlight) + '</span></h1>' +
@@ -108,17 +136,19 @@
           '<div class="profile-card__stats">' + st.slice(0, 3).map(s => '<div><b>' + esc(s.value) + esc(s.suffix) + '</b><span>' + esc(s.label) + '</span></div>').join('') + '</div>' +
         '</div>' + floats +
       '</div>' +
-    '</div><a class="scroll-down" href="#' + (visible[1] ? visible[1].id : 'hero') + '" aria-label="Cuộn xuống"></a></section>';
+    '</div><a class="scroll-down" href="#' + (visible[1] ? visible[1].id : 'hero') + '" aria-label="Cuộn xuống"></a>' +
+    (games.length ? '<div class="marquee" aria-label="Các game nhận cày"><div class="marquee__track">' + loop + loop + loop + loop + '</div></div>' : '') + '</section>';
   };
 
   R.about = () => {
     const a = D.general.about;
-    const tiles = [['rocket', 'Sáng tạo không giới hạn'], ['shield', 'Uy tín & tận tâm']];
+    const tl = a.tiles || [];
+    const tiles = [['swords', tl[0] || 'Cày tay 100%'], ['shield', tl[1] || 'Bảo mật tài khoản']];
     return '<section id="about" class="section"><div class="container">' + head('about') +
       '<div class="about__grid">' +
         '<div class="about__visual reveal">' +
           '<div class="about__tile about__tile--main card"><strong>' + esc(a.experienceYears) + '</strong><span>' + esc(a.experienceLabel) + '</span></div>' +
-          tiles.map(t => '<div class="about__tile card tilt spot">' + icon(t[0]) + '<b>' + t[1] + '</b></div>').join('') +
+          tiles.map(t => '<div class="about__tile card tilt spot">' + icon(t[0]) + '<b>' + esc(t[1]) + '</b></div>').join('') +
         '</div>' +
         '<div class="about__text reveal r-right" style="--d:.15s"><p>' + esc(a.text) + '</p>' +
           '<ul class="checklist">' + (a.highlights || []).map(x => '<li>' + icon('check') + '<span>' + esc(x) + '</span></li>').join('') + '</ul>' +
@@ -219,9 +249,10 @@
       '<div class="form__grid">' +
         '<div class="field"><label for="f-name">Họ và tên *</label><input id="f-name" name="name" placeholder="Nguyễn Văn A" autocomplete="name"><small class="field__err"></small></div>' +
         '<div class="field"><label for="f-phone">Số điện thoại *</label><input id="f-phone" name="phone" placeholder="09xx xxx xxx" inputmode="tel" autocomplete="tel"><small class="field__err"></small></div>' +
+        '<div class="field"><label for="f-uid">Game / Server / UID</label><input id="f-uid" name="uid" placeholder="VD: Genshin – Asia – 8xxxxxxxx"></div>' +
         '<div class="field"><label for="f-email">Email</label><input id="f-email" name="email" placeholder="ban@email.com" type="email" autocomplete="email"><small class="field__err"></small></div>' +
-        '<div class="field"><label for="f-service">Dịch vụ quan tâm</label><select id="f-service" name="service"><option value="">— Chọn dịch vụ —</option>' + opts + '<option>Khác</option></select></div>' +
-        '<div class="field field--full"><label for="f-msg">Nội dung *</label><textarea id="f-msg" name="message" placeholder="Bạn cần hỗ trợ điều gì?"></textarea><small class="field__err"></small></div>' +
+        '<div class="field field--full"><label for="f-service">Dịch vụ quan tâm</label><select id="f-service" name="service"><option value="">— Chọn dịch vụ —</option>' + opts + '<option>Khác</option></select></div>' +
+        '<div class="field field--full"><label for="f-msg">Nội dung *</label><textarea id="f-msg" name="message" placeholder="Bạn cần cày gì? (VD: La Hoàn 36★, daily 1 tháng…)"></textarea><small class="field__err"></small></div>' +
       '</div>' +
       '<div class="form__foot"><p class="form__note">🔒 Thông tin của bạn được bảo mật.</p><button class="btn btn--primary" type="submit">' + icon('send') + 'Gửi tin nhắn</button></div></form>';
   }
@@ -406,13 +437,39 @@
     $('#theme-toggle').addEventListener('click', e => {
       const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       try { localStorage.setItem(PREF_KEY, next); } catch (err) { /* noop */ }
-      if (!document.startViewTransition || reduceMotion) return setMode(next);
-      const x = e.clientX, y = e.clientY, r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-      document.startViewTransition(() => setMode(next)).ready.then(() => {
-        document.documentElement.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + r + 'px at ' + x + 'px ' + y + 'px)'] },
-          { duration: 650, easing: 'cubic-bezier(.22,1,.36,1)', pseudoElement: '::view-transition-new(root)' });
-      });
+      circleTransition(e, () => setMode(next));
     });
+  }
+
+  /* Bộ chọn phong cách game — khách bấm để xem thử (chỉ lưu trên máy người xem) */
+  function initSkinPicker() {
+    const wrap = $('#skin-pick');
+    if (!D.theme.skinSwitcher) { wrap.remove(); return; }
+    const btn = $('#skin-btn'), menu = $('#skin-menu');
+    btn.innerHTML = icon('gamepad');
+    function render() {
+      menu.innerHTML = '<div class="skin-menu__head"><b>Phong cách giao diện</b><small>Xem thử — chỉ thay đổi trên máy của bạn</small></div>' +
+        Object.keys(SKINS).map(k => { const s = SKINS[k]; return '<button data-skin="' + k + '" class="' + (k === T.skin ? 'active' : '') + '">' +
+          '<i style="background:linear-gradient(135deg,' + s.primary + ',' + s.accent + ')"></i><span><b>' + esc(s.game) + '</b><small>' + esc(s.name + ' · ' + s.tagline) + '</small></span>' +
+          (k === T.skin ? icon('check') : '') + '</button>'; }).join('');
+    }
+    render();
+    const SEEN = 'mysite_skin_seen';
+    try { if (localStorage.getItem(SEEN)) wrap.classList.add('seen'); } catch (e) { /* noop */ }
+    btn.onclick = () => {
+      wrap.classList.toggle('open'); btn.setAttribute('aria-expanded', wrap.classList.contains('open'));
+      wrap.classList.add('seen'); try { localStorage.setItem(SEEN, '1'); } catch (e) { /* noop */ }
+    };
+    menu.addEventListener('click', e => {
+      const b = e.target.closest('[data-skin]'); if (!b) return;
+      const k = b.dataset.skin; wrap.classList.remove('open');
+      if (k === T.skin) return;
+      try { if (k === D.theme.skin) localStorage.removeItem(PREVIEW_KEY); else localStorage.setItem(PREVIEW_KEY, k); } catch (err) { /* noop */ }
+      circleTransition(e, () => { T = themeFor(k); applyTheme(); initBackground(); render(); });
+      toast('🎮 Phong cách: ' + SKINS[k].game);
+    });
+    document.addEventListener('click', e => { if (!e.composedPath().includes(wrap)) wrap.classList.remove('open'); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') wrap.classList.remove('open'); });
   }
 
   /* Hộp thoại */
@@ -507,7 +564,7 @@
       const btn = $('button[type="submit"]', f);
       btn.disabled = true; btn.innerHTML = '<span class="preloader__ring" style="position:static;width:18px;height:18px;border-width:2px"></span> Đang gửi...';
       setTimeout(() => {
-        Store.addMessage({ name: v('name'), phone: v('phone'), email: v('email'), service: v('service'), message: v('message') });
+        Store.addMessage({ name: v('name'), phone: v('phone'), uid: v('uid'), email: v('email'), service: v('service'), message: v('message') });
         wrap.innerHTML = '<div class="form-success"><div class="form-success__icon">' + icon('check') + '</div><h3>Gửi thành công!</h3>' +
           '<p style="color:var(--muted)">Cảm ơn ' + esc(v('name')) + '. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.</p>' +
           '<button class="btn btn--ghost" id="form-again">Gửi tin nhắn khác</button></div>';
@@ -525,15 +582,21 @@
     (function loop() { cx += (x - cx) * 0.12; cy += (y - cy) * 0.12; g.style.transform = 'translate(' + (cx - 230) + 'px,' + (cy - 230) + 'px)'; requestAnimationFrame(loop); })();
   }
 
-  /* ---------------- Nền canvas: hạt / sao / tuyết / bong bóng ---------------- */
+  /* ---------------- Nền canvas: hạt / sao / tuyết / bong bóng / sóng âm / lưới / bokeh ---------------- */
+  let bgGen = 0; // tăng mỗi lần đổi phong cách để dừng vòng lặp cũ
+  const mouse = { x: -999, y: -999 };
+  window.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
+  document.addEventListener('pointerleave', () => { mouse.x = mouse.y = -999; });
   function initBackground() {
-    const cv = $('#bg-canvas'), type = T.effect;
-    if (type === 'none' || reduceMotion) { cv.remove(); return; }
-    const ctx = cv.getContext('2d');
+    const gen = ++bgGen, cv = $('#bg-canvas'), type = T.effect, ctx = cv.getContext('2d');
+    if (type === 'none' || reduceMotion) { cv.style.display = 'none'; return; }
+    cv.style.display = '';
     const [pr, pg, pb] = hexToRgb(T.primary), [ar, ag, ab] = hexToRgb(T.accent);
-    let W, H, dpr, items = [], mouse = { x: -999, y: -999 };
+    const P = pr + ',' + pg + ',' + pb, A = ar + ',' + ag + ',' + ab;
+    let W, H, dpr, items = [], t = 0, shooting = null;
     const rnd = (a, b) => a + Math.random() * (b - a);
     function resize() {
+      if (gen !== bgGen) return window.removeEventListener('resize', resize);
       dpr = Math.min(window.devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
       cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); seed();
     }
@@ -543,9 +606,12 @@
       if (type === 'stars') items = Array.from({ length: Math.min(220, Math.floor(area / 6000)) }, () => ({ x: rnd(0, W), y: rnd(0, H), r: rnd(.3, 1.6), p: rnd(0, 6.28), s: rnd(.01, .04), vy: rnd(.02, .15) }));
       if (type === 'snow') items = Array.from({ length: Math.min(160, Math.floor(area / 9000)) }, () => ({ x: rnd(0, W), y: rnd(-H, H), r: rnd(1, 3.5), vy: rnd(.3, 1.2), p: rnd(0, 6.28) }));
       if (type === 'bubbles') items = Array.from({ length: Math.min(40, Math.floor(area / 35000)) }, () => ({ x: rnd(0, W), y: rnd(0, H), r: rnd(8, 40), vy: rnd(.2, .7), p: rnd(0, 6.28), c: Math.random() < .5 }));
+      if (type === 'waves') items = Array.from({ length: 40 }, () => ({ x: rnd(0, W), y: rnd(0, H), r: rnd(.5, 1.5), vx: rnd(.1, .5), p: rnd(0, 6.28) }));
+      if (type === 'grid') items = Array.from({ length: 12 }, () => ({ x: 0, y: 0, life: -1 }));
+      if (type === 'bokeh') items = Array.from({ length: Math.min(30, Math.floor(area / 40000) + 10) }, (_, i) => ({ x: rnd(0, W), y: rnd(0, H), r: rnd(20, 90), vy: rnd(.1, .4), vx: rnd(-.15, .15), p: rnd(0, 6.28), a: rnd(.07, .2), c: i % 3 === 0 ? A : i % 3 === 1 ? P : '255,170,220' }));
     }
-    let shooting = null;
     function frame() {
+      if (gen !== bgGen) return;
       if (document.hidden) return requestAnimationFrame(frame);
       const beat = window.__beat || 0;
       const dark = document.documentElement.dataset.theme === 'dark';
@@ -561,18 +627,18 @@
           const a = items[i];
           for (let j = i + 1; j < items.length; j++) {
             const b = items[j], d = Math.hypot(a.x - b.x, a.y - b.y);
-            if (d < 130) { ctx.strokeStyle = 'rgba(' + pr + ',' + pg + ',' + pb + ',' + ((1 - d / 130) * (dark ? .35 : .25)) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+            if (d < 130) { ctx.strokeStyle = 'rgba(' + P + ',' + ((1 - d / 130) * (dark ? .35 : .25)) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
           }
           const md = Math.hypot(a.x - mouse.x, a.y - mouse.y);
-          if (md < 180) { ctx.strokeStyle = 'rgba(' + ar + ',' + ag + ',' + ab + ',' + ((1 - md / 180) * .5) + ')'; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke(); }
-          ctx.fillStyle = 'rgba(' + (i % 3 ? pr + ',' + pg + ',' + pb : ar + ',' + ag + ',' + ab) + ',.8)';
+          if (md < 180) { ctx.strokeStyle = 'rgba(' + A + ',' + ((1 - md / 180) * .5) + ')'; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke(); }
+          ctx.fillStyle = 'rgba(' + (i % 3 ? P : A) + ',.8)';
           ctx.beginPath(); ctx.arc(a.x, a.y, a.r * (1 + beat), 0, 6.283); ctx.fill();
         }
       } else if (type === 'stars') {
         for (const s of items) {
           s.p += s.s; s.y -= s.vy; if (s.y < 0) { s.y = H; s.x = rnd(0, W); }
           const a = (Math.sin(s.p) * .5 + .5) * (dark ? .9 : .5) + beat * .3;
-          ctx.fillStyle = dark ? 'rgba(255,255,255,' + a + ')' : 'rgba(' + pr + ',' + pg + ',' + pb + ',' + a + ')';
+          ctx.fillStyle = dark ? 'rgba(255,255,255,' + a + ')' : 'rgba(' + P + ',' + a + ')';
           ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
         }
         if (!shooting && Math.random() < .004) shooting = { x: rnd(W * .2, W), y: rnd(0, H * .4), l: 0 };
@@ -586,23 +652,67 @@
         for (const f of items) {
           f.p += .01; f.y += f.vy; f.x += Math.sin(f.p) * .5;
           if (f.y > H + 5) { f.y = -5; f.x = rnd(0, W); }
-          ctx.fillStyle = dark ? 'rgba(255,255,255,.75)' : 'rgba(' + pr + ',' + pg + ',' + pb + ',.35)';
+          ctx.fillStyle = dark ? 'rgba(255,255,255,.75)' : 'rgba(' + P + ',.35)';
           ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill();
         }
       } else if (type === 'bubbles') {
         for (const b of items) {
           b.p += .01; b.y -= b.vy * (1 + beat * 2); b.x += Math.sin(b.p) * .4;
           if (b.y < -b.r) { b.y = H + b.r; b.x = rnd(0, W); }
-          const c = b.c ? [pr, pg, pb] : [ar, ag, ab];
+          const c = b.c ? P : A;
           ctx.strokeStyle = 'rgba(' + c + ',.35)'; ctx.fillStyle = 'rgba(' + c + ',.06)'; ctx.lineWidth = 1.2;
           ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.283); ctx.fill(); ctx.stroke();
         }
+      } else if (type === 'waves') {
+        // Các dải sóng âm mảnh, biên độ tăng theo nhịp nhạc
+        t += .01 * (1 + beat * 2);
+        for (let k = 0; k < 6; k++) {
+          const y0 = H * (.22 + k * .12), amp = 14 + k * 5 + beat * 70;
+          ctx.strokeStyle = 'rgba(' + (k % 2 ? A : P) + ',' + (.1 + (k % 3) * .05) + ')'; ctx.lineWidth = k === 2 ? 1.6 : 1;
+          ctx.beginPath();
+          for (let x = 0; x <= W + 8; x += 8) {
+            const y = y0 + Math.sin(x * .006 + t * (1 + k * .3) + k) * amp * Math.sin(x * .0016 + t * .4 + k);
+            x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+          }
+          ctx.stroke();
+        }
+        for (const d of items) {
+          d.x += d.vx; d.p += .03; if (d.x > W) { d.x = 0; d.y = rnd(0, H); }
+          ctx.fillStyle = 'rgba(255,255,255,' + (.25 + Math.sin(d.p) * .2) + ')';
+          ctx.fillRect(d.x, d.y, d.r * 6, d.r * .8);
+        }
+      } else if (type === 'grid') {
+        // Lưới kỹ thuật + vạch quét + khối dữ liệu nhấp nháy
+        const ink = dark ? '255,255,255' : '20,22,26', gs = 48;
+        ctx.fillStyle = 'rgba(' + ink + ',.16)';
+        for (let x = gs; x < W; x += gs) for (let y = gs; y < H; y += gs) ctx.fillRect(x - .75, y - .75, 1.5, 1.5);
+        ctx.strokeStyle = 'rgba(' + ink + ',.28)'; ctx.lineWidth = 1; ctx.beginPath();
+        for (let x = gs * 2; x < W; x += gs * 4) for (let y = gs * 2; y < H; y += gs * 4) { ctx.moveTo(x - 5, y); ctx.lineTo(x + 5, y); ctx.moveTo(x, y - 5); ctx.lineTo(x, y + 5); }
+        ctx.stroke();
+        t += 1.3 + beat * 5; const sy = t % (H + 200) - 100;
+        const g = ctx.createLinearGradient(0, sy - 90, 0, sy); g.addColorStop(0, 'rgba(' + P + ',0)'); g.addColorStop(1, 'rgba(' + P + ',.16)');
+        ctx.fillStyle = g; ctx.fillRect(0, sy - 90, W, 90);
+        ctx.fillStyle = 'rgba(' + P + ',.7)'; ctx.fillRect(0, sy, W, 1);
+        for (const b of items) {
+          b.life--;
+          if (b.life < 0) { b.x = Math.floor(rnd(1, W / gs)) * gs; b.y = Math.floor(rnd(1, H / gs)) * gs; b.life = rnd(60, 200); }
+          if (b.life % 24 < 16) { ctx.fillStyle = 'rgba(' + P + ',.35)'; ctx.fillRect(b.x + 3, b.y + 3, gs - 6, 5); ctx.fillStyle = 'rgba(' + ink + ',.2)'; ctx.fillRect(b.x + 3, b.y + 11, (gs - 6) * .6, 3); }
+        }
+      } else if (type === 'bokeh') {
+        // Đèn thành phố nhoè (bokeh) trôi chậm
+        ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over';
+        for (const b of items) {
+          b.p += .01; b.y -= b.vy * (1 + beat * 2); b.x += b.vx + Math.sin(b.p) * .2;
+          if (b.y < -b.r) { b.y = H + b.r; b.x = rnd(0, W); }
+          const r = b.r * (1 + beat * .3), g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+          g.addColorStop(0, 'rgba(' + b.c + ',' + b.a + ')'); g.addColorStop(.7, 'rgba(' + b.c + ',' + (b.a * .45) + ')'); g.addColorStop(1, 'rgba(' + b.c + ',0)');
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, 6.283); ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
       }
       requestAnimationFrame(frame);
     }
     window.addEventListener('resize', resize);
-    window.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
-    document.addEventListener('pointerleave', () => { mouse.x = mouse.y = -999; });
     resize(); frame();
   }
 
@@ -668,7 +778,6 @@
 
     // Vòng lặp: visualizer, thanh tiến trình, "nhún" theo nhạc
     const viz = $('#pl-viz'), vctx = viz && viz.getContext('2d'), buf = new Uint8Array(64);
-    const [pr, pg, pb] = hexToRgb(T.primary), [ar, ag, ab] = hexToRgb(T.accent);
     let beat = 0;
     (function loop() {
       const lvl = P.level();
@@ -687,7 +796,7 @@
         if (viz.width !== w * d) { viz.width = w * d; viz.height = h * d; }
         vctx.setTransform(d, 0, 0, d, 0, 0); vctx.clearRect(0, 0, w, h);
         P.freq(buf);
-        const bars = 32, bw = w / bars;
+        const bars = 32, bw = w / bars, [pr, pg, pb] = hexToRgb(T.primary), [ar, ag, ab] = hexToRgb(T.accent);
         const g = vctx.createLinearGradient(0, 0, w, 0);
         g.addColorStop(0, 'rgb(' + pr + ',' + pg + ',' + pb + ')'); g.addColorStop(1, 'rgb(' + ar + ',' + ag + ',' + ab + ')');
         vctx.fillStyle = g;
@@ -737,11 +846,11 @@
   });
 
   /* ---------------- Khởi động ---------------- */
-  applyTheme();
   renderAnnounce();
   renderHeader();
   renderMain();
   renderFooter();
+  applyTheme();
   renderFab();
   Store.trackVisit();
   initReveal();
@@ -751,6 +860,7 @@
   initScroll();
   initMenu();
   initThemeToggle();
+  initSkinPicker();
   initServices();
   initSlider();
   initFaq();

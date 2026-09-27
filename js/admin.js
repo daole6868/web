@@ -239,7 +239,7 @@
 
   /* ---------------- Định nghĩa các trang ---------------- */
   const REVEALS = [['fade-up', 'Trượt lên mờ dần'], ['zoom', 'Phóng to'], ['slide', 'Trượt ngang'], ['blur', 'Làm rõ từ mờ'], ['flip', 'Lật 3D'], ['none', 'Không hiệu ứng']];
-  const EFFECTS = [['particles', 'Mạng hạt kết nối'], ['stars', 'Bầu trời sao'], ['snow', 'Tuyết rơi'], ['bubbles', 'Bong bóng'], ['none', 'Không có']];
+  const EFFECTS = [['particles', 'Mạng hạt kết nối'], ['stars', 'Bầu trời sao'], ['waves', 'Sóng âm'], ['grid', 'Lưới kỹ thuật + vạch quét'], ['bokeh', 'Đèn neon nhoè (bokeh)'], ['snow', 'Tuyết rơi'], ['bubbles', 'Bong bóng'], ['none', 'Không có']];
   const FONTS = [['Be Vietnam Pro', 'Be Vietnam Pro (khuyên dùng)'], ['Montserrat', 'Montserrat'], ['Nunito', 'Nunito (mềm mại)'], ['Lexend', 'Lexend (dễ đọc)']];
   const PALETTES = [
     ['Tím Neon', '#7c5cff', '#22d3ee'], ['Hoàng hôn', '#f97316', '#ec4899'], ['Rừng xanh', '#10b981', '#84cc16'], ['Đại dương', '#3b82f6', '#06b6d4'],
@@ -307,11 +307,13 @@
           { key: 'general.hero.cardName', label: 'Tên trên thẻ hồ sơ', type: 'text' },
           { key: 'general.hero.cardRole', label: 'Chức danh trên thẻ', type: 'text' },
           { key: 'general.hero.cardInitials', label: 'Chữ viết tắt trong vòng tròn', type: 'text' },
-          { key: 'general.hero.floatBadges', label: 'Nhãn bay quanh thẻ (tối đa 3)', type: 'lines', rows: 3 }
+          { key: 'general.hero.floatBadges', label: 'Nhãn bay quanh thẻ (tối đa 3)', type: 'lines', rows: 3 },
+          { key: 'general.games', label: 'Các game nhận cày (dải chữ chạy dưới phần đầu trang)', type: 'lines', rows: 6, hint: 'Mỗi dòng một game — để trống nếu không muốn hiện dải chữ chạy' }
         ], draft)) +
         panel('Mục giới thiệu', 'user', '', form([
           { key: 'general.about.text', label: 'Đoạn giới thiệu', type: 'textarea', rows: 4 },
           { key: 'general.about.highlights', label: 'Điểm nổi bật', type: 'lines' },
+          { key: 'general.about.tiles', label: 'Chữ trên 2 ô nhỏ cạnh ô kinh nghiệm', type: 'lines', rows: 2 },
           { key: 'general.about.experienceYears', label: 'Số năm kinh nghiệm', type: 'text' },
           { key: 'general.about.experienceLabel', label: 'Nhãn', type: 'text' }
         ], draft)) +
@@ -324,7 +326,12 @@
       label: 'Giao diện & Hiệu ứng', icon: 'palette', group: 'Nội dung', desc: 'Màu sắc, phông chữ, bo góc, hiệu ứng',
       render() {
         const t = draft.theme;
-        return '<div class="grid-2"><div>' +
+        return panel('Phong cách game', 'gamepad', 'Mỗi phong cách đổi toàn bộ bố cục trang trí, phông chữ, màu, hiệu ứng nền — lấy cảm hứng từ từng tựa game. Chọn xong vẫn tinh chỉnh màu bên dưới được.',
+          '<div class="skins">' + Object.keys(SKINS).map(k => { const sk = SKINS[k]; return '<button class="skin-card' + (t.skin === k ? ' active' : '') + '" data-skinpick="' + k + '" style="--sb:' + sk.bg + ';--si:' + sk.ink + ';--sp:' + sk.primary + ';--sa:' + sk.accent + ';--sf:\'' + sk.display + '\'">' +
+            '<div class="skin-card__art"><i></i><b>' + esc(sk.name) + '</b><span class="skin-card__btn">Thuê ngay</span></div>' +
+            '<div class="skin-card__meta"><b>' + esc(sk.game) + '</b><small>' + esc(sk.tagline) + '</small></div>' + (t.skin === k ? '<span class="skin-card__check">' + icon('check') + '</span>' : '') + '</button>'; }).join('') + '</div>' +
+          '<div style="margin-top:16px">' + form([{ key: 'theme.skinSwitcher', label: 'Hiện nút “Đổi phong cách” trên trang cho khách xem thử', type: 'toggle', hint: 'Khách chỉ đổi trên máy họ — không ảnh hưởng cài đặt của bạn' }], draft) + '</div>') +
+        '<div class="grid-2"><div>' +
           panel('Bảng màu mẫu', 'palette', 'Chọn nhanh một cặp màu hài hoà', '<div class="swatches">' + PALETTES.map(p =>
             '<button class="swatch' + (t.primary === p[1] && t.accent === p[2] ? ' active' : '') + '" data-pal="' + p[1] + ',' + p[2] + '"><i style="background:linear-gradient(135deg,' + p[1] + ',' + p[2] + ')"></i><span>' + p[0] + '</span></button>').join('') + '</div>') +
           panel('Màu & kiểu dáng', 'settings', '', form([
@@ -352,6 +359,11 @@
       },
       after() {
         this.onChange();
+        $$('[data-skinpick]').forEach(b => b.onclick = () => {
+          const k = b.dataset.skinpick, sk = SKINS[k];
+          Object.assign(draft.theme, { skin: k, primary: sk.primary, accent: sk.accent, font: sk.font, effect: sk.effect, radius: sk.radius, mode: sk.mode });
+          markDirty(); go('theme', true); toast('Đã chọn phong cách ' + sk.game + ' — bấm Lưu để áp dụng', 'ok');
+        });
         $$('[data-pal]').forEach(b => b.onclick = () => {
           const [p, a] = b.dataset.pal.split(',');
           draft.theme.primary = p; draft.theme.accent = a; markDirty(); go('theme', true);
@@ -485,7 +497,7 @@
           '<div class="search">' + icon('search') + '<input id="msg-q" placeholder="Tìm tên, SĐT, nội dung..." value="' + esc(this.q) + '"></div></div>' +
           (list.length ? '<div class="list">' + list.map(m =>
             '<div class="msg' + (m.read ? '' : ' unread') + '" data-id="' + m.id + '"><div class="msg__head"><div class="avatar">' + esc(initials(m.name)) + '</div>' +
-            '<div class="msg__who"><b>' + esc(m.name) + (m.read ? '' : '<span class="pill">Mới</span>') + (m.service ? '<span class="pill pill--gray">' + esc(m.service) + '</span>' : '') + '</b><span>' + fmtDate(m.date) + '</span></div>' +
+            '<div class="msg__who"><b>' + esc(m.name) + (m.read ? '' : '<span class="pill">Mới</span>') + (m.service ? '<span class="pill pill--gray">' + esc(m.service) + '</span>' : '') + (m.uid ? '<span class="pill pill--amber">' + esc(m.uid) + '</span>' : '') + '</b><span>' + fmtDate(m.date) + '</span></div>' +
             '<div class="row__actions"><button class="mini-btn" data-m="read" title="' + (m.read ? 'Đánh dấu chưa đọc' : 'Đánh dấu đã đọc') + '">' + icon(m.read ? 'eyeOff' : 'check') + '</button><button class="mini-btn danger" data-m="del" title="Xoá">' + icon('trash') + '</button></div></div>' +
             '<div class="msg__meta"><a href="tel:' + esc(m.phone) + '">' + icon('phone') + esc(m.phone) + '</a>' + (m.email ? '<a href="mailto:' + esc(m.email) + '">' + icon('mail') + esc(m.email) + '</a>' : '') +
             '<a href="https://zalo.me/' + esc(String(m.phone).replace(/\D/g, '')) + '" target="_blank" rel="noopener">' + icon('message') + 'Nhắn Zalo</a></div>' +
@@ -506,7 +518,7 @@
         $('#msg-readall').onclick = () => { Store.saveMessages(Store.messages().map(m => Object.assign(m, { read: true }))); rr(); };
         $('#msg-clear').onclick = async () => { if (await confirmBox('Xoá tất cả tin nhắn?', 'Không thể hoàn tác.', 'Xoá hết', true)) { Store.saveMessages([]); rr(); } };
         $('#msg-csv').onclick = () => {
-          const rows = [['Ngày', 'Họ tên', 'Điện thoại', 'Email', 'Dịch vụ', 'Nội dung', 'Đã đọc']].concat(Store.messages().map(m => [fmtDate(m.date), m.name, m.phone, m.email, m.service, m.message, m.read ? 'Có' : 'Chưa']));
+          const rows = [['Ngày', 'Họ tên', 'Điện thoại', 'Game / Server / UID', 'Email', 'Dịch vụ', 'Nội dung', 'Đã đọc']].concat(Store.messages().map(m => [fmtDate(m.date), m.name, m.phone, m.uid, m.email, m.service, m.message, m.read ? 'Có' : 'Chưa']));
           const csv = '﻿' + rows.map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n');
           download('tin-nhan-' + new Date().toISOString().slice(0, 10) + '.csv', csv, 'text/csv;charset=utf-8');
         };
@@ -688,7 +700,7 @@
   /* ---------------- Giao diện trang quản trị ---------------- */
   function applyAdminAccent() {
     const r = document.documentElement.style, t = draft.theme;
-    r.setProperty('--primary', t.primary); r.setProperty('--accent', t.accent);
+    r.setProperty('--primary', t.primary); r.setProperty('--accent', t.accent); r.setProperty('--on-primary', Store.onColor(t.primary));
   }
   function setAdminTheme(m) {
     document.documentElement.dataset.theme = m;

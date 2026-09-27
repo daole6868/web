@@ -1,0 +1,292 @@
+/* ==========================================================================
+   skins.css — Các phong cách giao diện lấy cảm hứng từ game
+   Chỉ dùng màu sắc, phông chữ và hoạ tiết tự vẽ bằng CSS — không dùng logo
+   hay hình ảnh chính thức của các game.
+     genshin  → Teyvat          (Genshin Impact)
+     wuwa     → Solaris         (Wuthering Waves)
+     hsr      → Astral Express  (Honkai: Star Rail)
+     zzz      → New Eridu       (Zenless Zone Zero)
+     endfield → Talos-II        (Arknights: Endfield)
+     nte      → Hethereau       (Neverness to Everness)
+   ========================================================================== */
+
+/* ---------- Dùng chung cho mọi phong cách ---------- */
+h1, h2, h3, .logo, .plan__price, .stat b, .hero__typing, .marquee { font-family: var(--font-display); }
+
+/* Nút đổi phong cách + menu */
+.skin-pick { position: relative; }
+#skin-btn { position: relative; }
+.skin-pick:not(.seen) #skin-btn::after {
+  content: ''; position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 0 var(--accent); animation: skinPing 1.8s infinite;
+}
+@keyframes skinPing { 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.skin-menu {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 130; width: 340px; padding: 8px; border-radius: var(--radius);
+  background: var(--surface-solid); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.98); transform-origin: top right; transition: .3s var(--ease);
+  font-family: var(--font);
+}
+.skin-pick.open .skin-menu { opacity: 1; visibility: visible; transform: none; }
+.skin-menu__head { padding: 8px 10px 10px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+.skin-menu__head b { display: block; font-size: .95rem; }
+.skin-menu__head small { color: var(--muted); font-size: .78rem; }
+.skin-menu button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: var(--radius-sm); text-align: left; transition: background .2s; }
+.skin-menu button:hover { background: var(--surface-2); }
+.skin-menu button.active { background: var(--primary-soft); }
+.skin-menu i { width: 38px; height: 38px; flex-shrink: 0; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); }
+.skin-menu span { flex: 1; min-width: 0; }
+.skin-menu span b { display: block; font-size: .9rem; }
+.skin-menu span small { display: block; font-size: .74rem; line-height: 1.3; color: var(--muted); }
+.skin-menu .ico { color: var(--primary); }
+
+/* Chữ nền cực lớn phía sau phần đầu trang */
+.hero__wm {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: -1; pointer-events: none; user-select: none;
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(5rem, 16vw, 15rem); line-height: 1; letter-spacing: .06em; white-space: nowrap;
+  color: transparent; -webkit-text-stroke: 1px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+/* Dải chữ chạy: các game nhận cày */
+.hero.has-marquee { padding-bottom: 150px; }
+.hero.has-marquee .scroll-down { bottom: 84px; }
+.marquee {
+  position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; padding: 14px 0;
+  border-block: 1px solid var(--border); background: color-mix(in srgb, var(--bg-2) 55%, transparent); backdrop-filter: blur(8px);
+}
+.marquee__track { display: flex; align-items: center; gap: 26px; width: max-content; animation: marquee 45s linear infinite; }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+.marquee span { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.marquee span .ico { color: var(--primary); }
+.marquee i { font-style: normal; color: var(--primary); opacity: .7; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Phong cách game: ẩn nút sáng/tối (mỗi phong cách có tông màu riêng) */
+html:not([data-skin="default"]) #theme-toggle { display: none; }
+
+/* Khung góc (corner brackets) dùng chung cho Genshin, WuWa, Endfield */
+html:is([data-skin="genshin"], [data-skin="wuwa"], [data-skin="endfield"]) :is(.service, .plan, .stat, .review__card, .info-card, .form, .profile-card, .faq__item, .about__tile:not(.about__tile--main))::before {
+  content: ''; position: absolute; inset: var(--bk-i, 7px); pointer-events: none; border-radius: calc(var(--radius) * .5);
+  border: 1px solid var(--bk-frame, transparent); opacity: var(--bk-o, .8);
+  background:
+    linear-gradient(var(--bk-c), var(--bk-c)) top left / var(--bk-s, 14px) 1.5px,
+    linear-gradient(var(--bk-c), var(--bk-c)) top left / 1.5px var(--bk-s, 14px),
+    linear-gradient(var(--bk-c), var(--bk-c)) top right / var(--bk-s, 14px) 1.5px,
+    linear-gradient(var(--bk-c), var(--bk-c)) top right / 1.5px var(--bk-s, 14px),
+    linear-gradient(var(--bk-c), var(--bk-c)) bottom left / var(--bk-s, 14px) 1.5px,
+    linear-gradient(var(--bk-c), var(--bk-c)) bottom left / 1.5px var(--bk-s, 14px),
+    linear-gradient(var(--bk-c), var(--bk-c)) bottom right / var(--bk-s, 14px) 1.5px,
+    linear-gradient(var(--bk-c), var(--bk-c)) bottom right / 1.5px var(--bk-s, 14px);
+  background-repeat: no-repeat;
+}
+
+/* ==========================================================================
+   1. GENSHIN IMPACT — "Teyvat": đêm xanh thẫm, vàng kim, khung hoạ tiết cổ điển
+   ========================================================================== */
+html[data-skin="genshin"] {
+  --bg: #0e1322; --bg-2: #151b30; --surface: rgba(30, 38, 66, .55); --surface-2: rgba(255, 240, 210, .06); --surface-solid: #182038;
+  --border: rgba(216, 179, 106, .22); --text: #f4ecd8; --muted: #b9b09c; --glass: rgba(14, 19, 34, .74); --blob-opacity: .26;
+  --grad: linear-gradient(135deg, #f3dea4, var(--primary) 45%, #b8873c);
+  --bk-c: var(--primary); --bk-frame: color-mix(in srgb, var(--primary) 14%, transparent);
+  color-scheme: dark;
+}
+html[data-skin="genshin"] body { background: radial-gradient(ellipse at 50% -10%, #28366080 0%, transparent 60%), linear-gradient(180deg, #0e1322, #0a0e1a); background-attachment: fixed; }
+html[data-skin="genshin"] .bg-grid { display: none; }
+html[data-skin="genshin"] .hero__title { font-weight: 700; font-size: clamp(2.6rem, 5.4vw, 4.4rem); letter-spacing: 0; }
+html[data-skin="genshin"] .section-head h2 { font-weight: 700; font-size: clamp(2.2rem, 4.6vw, 3.3rem); letter-spacing: .01em; }
+html[data-skin="genshin"] .section-head h2::after { content: '✦'; display: block; margin-top: 10px; font-size: .9rem; color: var(--primary); letter-spacing: .6em; }
+html[data-skin="genshin"] .section-head__eyebrow::before { width: 44px; height: 1px; background: linear-gradient(90deg, transparent, var(--primary)); }
+html[data-skin="genshin"] .section-head__eyebrow::after { width: 44px; height: 1px; background: linear-gradient(90deg, var(--primary), transparent); }
+html[data-skin="genshin"] .section-head__eyebrow { color: var(--primary); }
+html[data-skin="genshin"] .btn { border-radius: 99px; }
+html[data-skin="genshin"] .btn--primary { box-shadow: 0 8px 26px rgba(216, 179, 106, .28), inset 0 0 0 1px rgba(255, 255, 255, .35); }
+html[data-skin="genshin"] .btn--ghost { border-color: color-mix(in srgb, var(--primary) 45%, transparent); }
+html[data-skin="genshin"] .service__icon { border-radius: 50%; border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent); }
+html[data-skin="genshin"] .logo__mark { border-radius: 50%; }
+html[data-skin="genshin"] .plan--hl { box-shadow: 0 0 40px rgba(216, 179, 106, .18); }
+html[data-skin="genshin"] .hero__wm { font-weight: 700; letter-spacing: .12em; }
+
+/* ==========================================================================
+   2. WUTHERING WAVES — "Solaris": đen tuyền tối giản, góc vát, sóng âm
+   ========================================================================== */
+html[data-skin="wuwa"] {
+  --bg: #08090b; --bg-2: #0f1113; --surface: rgba(255, 255, 255, .03); --surface-2: rgba(255, 255, 255, .06); --surface-solid: #111316;
+  --border: rgba(255, 255, 255, .12); --text: #eef2f1; --muted: #8f9897; --glass: rgba(8, 9, 11, .8); --blob-opacity: .1;
+  --bk-c: color-mix(in srgb, var(--text) 70%, transparent); --bk-s: 10px; --bk-i: 5px; --bk-o: .55;
+  --cut: 12px;
+  color-scheme: dark;
+}
+html[data-skin="wuwa"] .bg-grid { background-image: linear-gradient(var(--border) 1px, transparent 1px); background-size: 100% 72px; opacity: .35; }
+html[data-skin="wuwa"] :is(.service, .stat, .info-card, .review__card, .faq__item, .form, .about__tile, .profile-card, .btn, .filter, .chip, .icon-btn, .modal__box, .player__panel) {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+html[data-skin="wuwa"] :is(.btn, .filter, .chip, .icon-btn) { --cut: 8px; }
+html[data-skin="wuwa"] :is(.hero__title, .section-head h2, .service h3, .plan h3) { text-transform: uppercase; letter-spacing: .03em; }
+html[data-skin="wuwa"] .hero__title { font-weight: 700; }
+html[data-skin="wuwa"] .section-head { text-align: left; max-width: none; margin: 0 0 56px; padding-left: 22px; border-left: 2px solid var(--primary); }
+html[data-skin="wuwa"] .section-head__eyebrow::before { width: 7px; height: 7px; border-radius: 0; background: var(--primary); transform: rotate(45deg); }
+html[data-skin="wuwa"] .section-head__eyebrow::after { width: 80px; height: 1px; background: linear-gradient(90deg, var(--primary), transparent); }
+html[data-skin="wuwa"] .btn { text-transform: uppercase; letter-spacing: .1em; font-size: .85rem; font-family: var(--font-display); }
+html[data-skin="wuwa"] .btn--primary { background: var(--primary); box-shadow: none; }
+html[data-skin="wuwa"] .btn--ghost { background: transparent; border-color: rgba(255, 255, 255, .3); }
+html[data-skin="wuwa"] .service__icon { background: transparent; border: 1px solid var(--border); }
+html[data-skin="wuwa"] .grad-text { background: linear-gradient(90deg, var(--primary), #ffffff 60%, var(--accent)); -webkit-background-clip: text; background-clip: text; }
+html[data-skin="wuwa"] .filters { justify-content: flex-start; }
+html[data-skin="wuwa"] .marquee { background: transparent; }
+html[data-skin="wuwa"] .hero__wm { -webkit-text-stroke-color: rgba(255, 255, 255, .07); letter-spacing: .3em; }
+
+/* ==========================================================================
+   3. HONKAI: STAR RAIL — "Astral Express": tinh vân tím, vàng kim, vé tàu
+   ========================================================================== */
+html[data-skin="hsr"] {
+  --bg: #070a1c; --bg-2: #0e1230; --surface: rgba(120, 130, 255, .06); --surface-2: rgba(255, 255, 255, .07); --surface-solid: #12163a;
+  --border: rgba(170, 160, 255, .18); --text: #eef0ff; --muted: #a3a8cf; --glass: rgba(7, 10, 28, .72); --blob-opacity: .34;
+  color-scheme: dark;
+}
+html[data-skin="hsr"] body {
+  background: radial-gradient(ellipse at 85% 0%, rgba(165, 139, 255, .25), transparent 50%), radial-gradient(ellipse at 0% 65%, rgba(242, 196, 109, .12), transparent 45%), #070a1c;
+  background-attachment: fixed;
+}
+html[data-skin="hsr"] .bg-grid { display: none; }
+html[data-skin="hsr"] .card { box-shadow: var(--shadow), inset 0 1px 0 color-mix(in srgb, var(--primary) 35%, transparent); }
+html[data-skin="hsr"] .hero__title { font-weight: 800; letter-spacing: -.01em; }
+html[data-skin="hsr"] .hero__title .grad-text { font-style: italic; }
+html[data-skin="hsr"] .section-head h2 { font-weight: 800; }
+html[data-skin="hsr"] .section-head h2::after { content: ''; display: block; width: 140px; height: 1px; margin: 18px auto 0; background: linear-gradient(90deg, transparent, var(--primary), transparent); }
+html[data-skin="hsr"] .section-head__eyebrow { padding: 4px 16px; background: var(--primary-soft); border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent); transform: skewX(-14deg); }
+html[data-skin="hsr"] .section-head__eyebrow::before, html[data-skin="hsr"] .section-head__eyebrow::after { display: none; }
+html[data-skin="hsr"] .btn { border-radius: 99px; }
+html[data-skin="hsr"] .btn--primary { box-shadow: 0 8px 26px color-mix(in srgb, var(--accent) 35%, transparent); }
+/* Bảng giá dạng vé tàu */
+html[data-skin="hsr"] .pricing { counter-reset: ticket; }
+html[data-skin="hsr"] .plan { counter-increment: ticket; }
+html[data-skin="hsr"] .plan::before { content: 'TICKET · No.0' counter(ticket); position: absolute; top: 18px; right: 20px; font: 600 .68rem 'JetBrains Mono', monospace; letter-spacing: .14em; color: var(--muted); }
+html[data-skin="hsr"] .plan__desc { border-bottom: 2px dashed var(--border); }
+html[data-skin="hsr"] .hero__wm { font-style: italic; }
+
+/* ==========================================================================
+   4. ZENLESS ZONE ZERO — "New Eridu": truyện tranh đường phố, neon vàng chanh
+   ========================================================================== */
+html[data-skin="zzz"] {
+  --bg: #0b0b0b; --bg-2: #141414; --surface: #161616; --surface-2: #202020; --surface-solid: #161616;
+  --border: #2c2c2c; --text: #f4f4ee; --muted: #a3a39a; --glass: rgba(11, 11, 11, .88); --blob-opacity: .08;
+  --shadow: 6px 6px 0 #000; --shadow-lg: 10px 10px 0 #000;
+  --grad: linear-gradient(135deg, var(--primary), var(--primary));
+  color-scheme: dark;
+}
+html[data-skin="zzz"] .bg-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, .08) 1.3px, transparent 1.5px); background-size: 14px 14px; opacity: 1;
+  mask-image: linear-gradient(180deg, #000, transparent 75%); -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%);
+}
+/* Băng dính sọc chéo phía sau phần đầu trang */
+html[data-skin="zzz"] .hero::before, html[data-skin="zzz"] .hero::after {
+  content: ''; position: absolute; z-index: -1; left: -10%; right: -10%; height: 46px; pointer-events: none;
+  background: repeating-linear-gradient(-45deg, var(--primary) 0 18px, #0b0b0b 18px 36px);
+}
+html[data-skin="zzz"] .hero::before { top: 18%; transform: rotate(-7deg); opacity: .9; }
+html[data-skin="zzz"] .hero::after { bottom: 20%; transform: rotate(5deg); opacity: .3; background: repeating-linear-gradient(45deg, var(--accent) 0 18px, #0b0b0b 18px 36px); }
+html[data-skin="zzz"] .card { border: 2px solid var(--border); backdrop-filter: none; -webkit-backdrop-filter: none; }
+html[data-skin="zzz"] :is(.service, .plan, .stat, .info-card):hover { border-color: #000; box-shadow: 8px 8px 0 var(--primary); }
+html[data-skin="zzz"] :is(.hero__title, .section-head h2, .service h3, .plan h3, .step h3, .logo) { font-style: italic; text-transform: uppercase; font-weight: 800; letter-spacing: .01em; }
+html[data-skin="zzz"] .hero__title { font-size: clamp(3rem, 6.6vw, 5.4rem); line-height: .98; }
+html[data-skin="zzz"] .section-head h2 { font-size: clamp(2.6rem, 5.4vw, 4rem); }
+html[data-skin="zzz"] .grad-text { background: none; -webkit-text-fill-color: var(--primary); color: var(--primary); text-shadow: 4px 4px 0 var(--accent); }
+html[data-skin="zzz"] .section-head__eyebrow { padding: 5px 14px; background: var(--primary); color: #0b0b0b; font-weight: 800; transform: rotate(-2deg) skewX(-8deg); box-shadow: 4px 4px 0 var(--accent); }
+html[data-skin="zzz"] .section-head__eyebrow::before, html[data-skin="zzz"] .section-head__eyebrow::after { display: none; }
+html[data-skin="zzz"] .btn { transform: skewX(-8deg); border-radius: 4px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+html[data-skin="zzz"] .btn:hover { transform: skewX(-8deg) translate(-2px, -2px); }
+html[data-skin="zzz"] .btn--primary { box-shadow: 5px 5px 0 var(--accent); }
+html[data-skin="zzz"] .btn--primary:hover { box-shadow: 7px 7px 0 var(--accent); }
+html[data-skin="zzz"] .btn--ghost { border: 2px solid var(--text); box-shadow: 5px 5px 0 #000; }
+html[data-skin="zzz"] .service__icon, html[data-skin="zzz"] .logo__mark { border-radius: 6px; border: 2px solid #000; box-shadow: 3px 3px 0 var(--accent); }
+html[data-skin="zzz"] .service__icon { background: var(--primary); color: #0b0b0b; }
+html[data-skin="zzz"] .filter { border-width: 2px; transform: skewX(-8deg); border-radius: 4px; }
+html[data-skin="zzz"] .badge { border-radius: 4px; background: #0b0b0b; border: 2px solid var(--primary); color: var(--primary); }
+html[data-skin="zzz"] .marquee { background: var(--primary); border: 0; transform: rotate(-1.2deg); left: -2%; right: -2%; bottom: 18px; }
+html[data-skin="zzz"] .marquee span, html[data-skin="zzz"] .marquee span .ico, html[data-skin="zzz"] .marquee i { color: #0b0b0b; font-style: italic; font-weight: 800; }
+html[data-skin="zzz"] .hero__wm { -webkit-text-stroke: 2px rgba(212, 255, 30, .1); font-style: italic; }
+
+/* ==========================================================================
+   5. ARKNIGHTS: ENDFIELD — "Talos-II": công nghiệp sci-fi, nền sáng, vàng cảnh báo
+   ========================================================================== */
+html[data-skin="endfield"] {
+  --bg: #e9e9e4; --bg-2: #f3f3ef; --surface: rgba(255, 255, 255, .62); --surface-2: #e0e0da; --surface-solid: #f7f7f3;
+  --border: rgba(20, 22, 26, .16); --text: #15171a; --muted: #5b6066; --glass: rgba(233, 233, 228, .86); --blob-opacity: .16;
+  --shadow: 0 1px 0 rgba(0, 0, 0, .04); --shadow-lg: 0 18px 40px rgba(20, 22, 26, .12);
+  --grad: linear-gradient(135deg, var(--primary), #ffb300);
+  --bk-c: #15171a; --bk-s: 12px; --bk-i: -1px; --bk-o: 1;
+  --hazard: repeating-linear-gradient(-45deg, #15171a 0 8px, var(--primary) 8px 16px);
+  color-scheme: light;
+}
+html[data-skin="endfield"] .bg-blobs span:nth-child(3) { display: none; }
+html[data-skin="endfield"] .grad-text { background: linear-gradient(transparent 58%, var(--primary) 58%, var(--primary) 92%, transparent 92%); -webkit-background-clip: border-box; background-clip: border-box; color: var(--text); -webkit-text-fill-color: currentColor; }
+html[data-skin="endfield"] :is(.hero__title, .section-head h2, .service h3, .plan h3) { text-transform: uppercase; letter-spacing: .01em; }
+html[data-skin="endfield"] .section-head { text-align: left; max-width: none; margin: 0 0 56px; }
+html[data-skin="endfield"] .section-head::before { content: ''; display: block; width: 120px; height: 8px; margin-bottom: 18px; background: var(--hazard); }
+html[data-skin="endfield"] .section-head__eyebrow { font-family: 'JetBrains Mono', monospace; color: var(--text); letter-spacing: .12em; }
+html[data-skin="endfield"] .section-head__eyebrow::before { content: '['; width: auto; height: auto; background: none; color: var(--muted); }
+html[data-skin="endfield"] .section-head__eyebrow::after { content: '] // TALOS-II'; width: auto; height: auto; background: none; color: var(--muted); }
+html[data-skin="endfield"] .card { backdrop-filter: none; -webkit-backdrop-filter: none; }
+html[data-skin="endfield"] :is(.service, .plan, .stat, .info-card):hover { border-color: #15171a; box-shadow: var(--shadow-lg); }
+html[data-skin="endfield"] .btn { text-transform: uppercase; letter-spacing: .08em; font-family: var(--font-display); }
+html[data-skin="endfield"] .btn--primary { background: var(--primary); box-shadow: 4px 4px 0 #15171a; }
+html[data-skin="endfield"] .btn--primary:hover { box-shadow: 6px 6px 0 #15171a; }
+html[data-skin="endfield"] .btn--ghost { background: transparent; border: 1.5px solid #15171a; }
+html[data-skin="endfield"] .btn--ghost:hover { background: #15171a; color: var(--primary); }
+html[data-skin="endfield"] .service__icon { background: #15171a; color: var(--primary); }
+html[data-skin="endfield"] .filters { justify-content: flex-start; }
+html[data-skin="endfield"] .filter.active { background: #15171a; color: var(--primary); box-shadow: none; }
+html[data-skin="endfield"] .badge { background: #15171a; color: var(--primary); border-color: #15171a; border-radius: 2px; font-family: 'JetBrains Mono', monospace; }
+html[data-skin="endfield"] .announce { background: #15171a; color: var(--primary); animation: none; }
+html[data-skin="endfield"] .announce__close { color: var(--primary); }
+html[data-skin="endfield"] .marquee { background: #15171a; border: 0; }
+html[data-skin="endfield"] .marquee::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: var(--hazard); }
+html[data-skin="endfield"] .marquee span { color: #e9e9e4; font-family: 'JetBrains Mono', monospace; font-size: .92rem; }
+html[data-skin="endfield"] .plan__ribbon { border-radius: 2px; background: #15171a; color: var(--primary); }
+html[data-skin="endfield"] .about__tile--main { background: #15171a; color: var(--primary); }
+html[data-skin="endfield"] .about__tile--main::before { background: var(--hazard); width: 100%; height: 10px; top: 0; right: 0; border-radius: 0; opacity: 1; }
+html[data-skin="endfield"] .hero__wm { -webkit-text-stroke-color: rgba(20, 22, 26, .09); }
+html[data-skin="endfield"] #bg-canvas { opacity: .9; }
+/* Nền sáng: chữ/icon màu vàng khó đọc → dùng mực đen, vàng chỉ làm nền nhấn */
+html[data-skin="endfield"] :is(.info-card__icon, .checklist .ico, .chip .ico, .step__num .ico, .about__tile .ico, .faq__q .ico, .review__quote, .copy-btn:hover, .footer ul a:hover, .service__more:hover, .skin-menu .ico, .player__controls button.on, .player__list button.active, .toast .ico, .mobile-menu nav a.active, .icon-btn:hover, .chip:hover) { color: var(--text); }
+html[data-skin="endfield"] :is(.icon-btn:hover, .chip:hover, .filter:hover) { border-color: var(--text); }
+html[data-skin="endfield"] :is(.service__price, .modal__price) { color: var(--text); background: linear-gradient(transparent 55%, var(--primary) 55%, var(--primary) 90%, transparent 90%); }
+html[data-skin="endfield"] .marquee span .ico { color: var(--primary); }
+html[data-skin="endfield"] :is(.info-card__icon, .checklist .ico) { background: var(--primary); }
+
+/* ==========================================================================
+   6. NEVERNESS TO EVERNESS — "Hethereau": thành phố đêm siêu nhiên, neon hồng – tím
+   ========================================================================== */
+html[data-skin="nte"] {
+  --bg: #0c0717; --bg-2: #150c26; --surface: rgba(255, 255, 255, .05); --surface-2: rgba(255, 255, 255, .09); --surface-solid: #1a1030;
+  --border: rgba(255, 120, 200, .18); --text: #fff4fb; --muted: #c4abcc; --glass: rgba(12, 7, 23, .72); --blob-opacity: .5;
+  color-scheme: dark;
+}
+html[data-skin="nte"] body { background: linear-gradient(180deg, #0c0717 0%, #170a2a 55%, #230d36 100%); background-attachment: fixed; }
+html[data-skin="nte"] .bg-grid { display: none; }
+/* Đường chân trời thành phố phía dưới phần đầu trang */
+html[data-skin="nte"] .hero::before {
+  content: ''; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: 260px; pointer-events: none; opacity: .85;
+  background: linear-gradient(180deg, transparent, var(--bg) 96%), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 220" preserveAspectRatio="none"><rect x="0" y="122" width="54" height="98" fill="%231a0d30"/><rect x="18" y="134" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="30" y="134" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="42" y="134" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="6" y="150" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="30" y="150" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="6" y="166" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="18" y="166" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="6" y="182" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="42" y="182" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="18" y="198" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="59" y="134" width="45" height="86" fill="%231a0d30"/><rect x="77" y="162" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="105" y="98" width="45" height="122" fill="%231a0d30"/><rect x="111" y="110" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="111" y="142" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="123" y="142" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="135" y="142" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="135" y="158" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="153" y="144" width="78" height="76" fill="%231a0d30"/><rect x="159" y="156" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="159" y="188" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="171" y="188" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="219" y="188" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="233" y="63" width="77" height="157" fill="%231a0d30"/><rect x="251" y="75" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="263" y="75" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="251" y="91" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="299" y="91" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="239" y="139" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="263" y="139" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="275" y="139" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="263" y="155" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="287" y="155" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="263" y="171" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="239" y="187" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="239" y="203" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="315" y="94" width="39" height="126" fill="%231a0d30"/><rect x="333" y="154" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="333" y="186" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="333" y="202" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="357" y="71" width="80" height="149" fill="%231a0d30"/><rect x="411" y="83" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="387" y="99" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="363" y="115" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="411" y="115" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="363" y="147" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="375" y="147" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="411" y="147" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="399" y="163" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="363" y="179" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="423" y="179" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="363" y="195" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="423" y="195" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="439" y="28" width="63" height="192" fill="%231a0d30"/><rect x="445" y="56" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="493" y="56" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="469" y="88" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="481" y="88" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="457" y="168" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="457" y="184" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="493" y="184" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="481" y="200" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="493" y="200" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="505" y="119" width="65" height="101" fill="%231a0d30"/><rect x="535" y="131" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="535" y="147" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="547" y="147" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="511" y="179" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="535" y="179" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="511" y="195" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="573" y="23" width="43" height="197" fill="%231a0d30"/><rect x="579" y="51" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="603" y="51" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="591" y="67" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="579" y="83" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="591" y="83" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="591" y="115" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="579" y="147" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="579" y="163" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="603" y="163" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="603" y="179" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="603" y="195" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="617" y="133" width="62" height="87" fill="%231a0d30"/><rect x="659" y="161" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="647" y="193" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="659" y="193" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="647" y="209" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="682" y="88" width="66" height="132" fill="%231a0d30"/><rect x="712" y="100" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="724" y="100" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="736" y="100" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="712" y="132" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="724" y="132" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="688" y="148" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="712" y="148" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="724" y="148" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="736" y="148" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="712" y="164" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="736" y="164" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="712" y="196" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="753" y="31" width="78" height="189" fill="%231a0d30"/><rect x="759" y="43" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="807" y="43" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="807" y="59" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="795" y="75" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="771" y="91" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="759" y="107" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="807" y="123" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="759" y="139" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="783" y="139" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="771" y="155" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="783" y="155" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="807" y="155" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="807" y="171" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="819" y="171" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="771" y="187" width="5" height="7" fill="%237a7dff" opacity=".7"/><rect x="783" y="187" width="5" height="7" fill="%23ffd1ec" opacity=".7"/><rect x="759" y="203" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="771" y="203" width="5" height="7" fill="%23ff4fa3" opacity=".7"/><rect x="783" y="203" width="5" height="7" fill="%23ffd1ec" opacity=".7"/></svg>') repeat-x bottom / 800px 100%;
+}
+html[data-skin="nte"] :is(.hero__title, .section-head h2) { font-weight: 800; letter-spacing: -.02em; text-shadow: 0 0 30px color-mix(in srgb, var(--primary) 40%, transparent); }
+html[data-skin="nte"] .grad-text { background: linear-gradient(90deg, var(--primary), #ffb3dd, var(--accent)); -webkit-background-clip: text; background-clip: text; }
+html[data-skin="nte"] .section-head__eyebrow { padding: 5px 16px; border-radius: 99px; color: #fff; background: linear-gradient(90deg, var(--primary), var(--accent)); transform: rotate(-3deg); box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 45%, transparent); }
+html[data-skin="nte"] .section-head__eyebrow::before, html[data-skin="nte"] .section-head__eyebrow::after { display: none; }
+html[data-skin="nte"] :is(.service, .plan, .stat, .info-card, .review__card):hover { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), 0 0 36px color-mix(in srgb, var(--primary) 35%, transparent); }
+html[data-skin="nte"] .btn { border-radius: 99px; }
+html[data-skin="nte"] .btn--primary { box-shadow: 0 0 28px color-mix(in srgb, var(--primary) 55%, transparent); }
+html[data-skin="nte"] .service__icon { border-radius: 50%; }
+html[data-skin="nte"] .marquee span { color: #ffd1ec; text-shadow: 0 0 12px color-mix(in srgb, var(--primary) 70%, transparent); }
+html[data-skin="nte"] .hero__wm { -webkit-text-stroke-color: rgba(255, 79, 163, .16); }
+
+/* ---------- Điện thoại ---------- */
+@media (max-width: 1080px) {
+  html:is([data-skin="wuwa"], [data-skin="endfield"]) .section-head { padding-left: 16px; }
+}
+@media (max-width: 640px) {
+  .skin-menu { position: fixed; left: 12px; right: 12px; top: 70px; width: auto; max-height: calc(100vh - 90px); overflow: auto; }
+  .hero.has-marquee { padding-bottom: 120px; }
+  .marquee span { font-size: .9rem; }
+  html[data-skin="zzz"] .hero::before, html[data-skin="zzz"] .hero::after { height: 30px; }
+}

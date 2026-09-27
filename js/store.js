@@ -6,7 +6,7 @@
   'use strict';
 
   const KEYS = {
-    data: 'mysite_data_v1',
+    data: 'mysite_data_v2',
     messages: 'mysite_messages_v1',
     stats: 'mysite_stats_v1',
     session: 'mysite_admin_session'
@@ -91,7 +91,21 @@
     smartphone: '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>',
     coffee: '<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>',
     gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
-    grip: '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>'
+    grip: '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>',
+    gamepad: '<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59c-.01.05-.01.1-.02.15C2.6 9.42 2 14.46 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.41-1.41A2 2 0 0 1 9.83 16h4.34a2 2 0 0 1 1.41.59L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.55-.6-6.58-.69-7.26-.01-.05-.01-.1-.02-.15A4 4 0 0 0 17.32 5z"/>',
+    swords: '<polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/>',
+    trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+    gem: '<path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/>',
+    compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+    calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+    factory: '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/>',
+    flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3 0 1.25 1 2 2.5 2.5z"/>',
+    crown: '<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>',
+    train: '<rect width="16" height="16" x="4" y="3" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h.01"/><path d="M16 15h.01"/>',
+    wave: '<path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2"/>',
+    wind: '<path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>',
+    tv: '<rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/>',
+    building: '<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>'
   };
 
   function icon(name, cls) {
@@ -100,59 +114,76 @@
   }
 
   /* Icon dùng cho dịch vụ / quy trình (hiển thị trong bộ chọn icon ở trang quản trị) */
-  const SERVICE_ICONS = ['code', 'palette', 'video', 'megaphone', 'lightbulb', 'wrench', 'camera', 'rocket', 'heart', 'shield', 'chart', 'users', 'music', 'sparkles', 'globe', 'cart', 'smartphone', 'pen', 'target', 'zap', 'award', 'coffee', 'gift', 'layers', 'image', 'search', 'message', 'send', 'star', 'clock'];
+  const SERVICE_ICONS = ['gamepad', 'swords', 'trophy', 'gem', 'compass', 'calendar', 'factory', 'flame', 'crown', 'train', 'wave', 'wind', 'tv', 'building', 'code', 'palette', 'video', 'megaphone', 'lightbulb', 'wrench', 'camera', 'rocket', 'heart', 'shield', 'chart', 'users', 'music', 'sparkles', 'globe', 'cart', 'smartphone', 'pen', 'target', 'zap', 'award', 'coffee', 'gift', 'layers', 'image', 'search', 'message', 'send', 'star', 'clock'];
+
+  /* ---------- Phong cách (skin) lấy cảm hứng từ các tựa game ----------
+     Chỉ dùng màu sắc, phông chữ, hoạ tiết tự vẽ — không dùng logo/hình ảnh chính thức. */
+  const SKINS = {
+    default: { bg: '#0a0c16', ink: '#e9ebf8', name: 'Nova Neon', game: 'Mặc định', tagline: 'Hiện đại, gradient tím – xanh', primary: '#7c5cff', accent: '#22d3ee', font: 'Be Vietnam Pro', display: 'Be Vietnam Pro', effect: 'particles', radius: 14, mode: 'dark', watermark: '' },
+    genshin: { bg: '#0e1322', ink: '#f4ecd8', name: 'Teyvat', game: 'Genshin Impact', tagline: 'Vàng kim thanh lịch, hoạ tiết cổ điển', primary: '#d8b36a', accent: '#72c7c9', font: 'Be Vietnam Pro', display: 'Cormorant Garamond', effect: 'stars', radius: 12, mode: 'dark', watermark: 'TEYVAT' },
+    wuwa: { bg: '#08090b', ink: '#eef2f1', name: 'Solaris', game: 'Wuthering Waves', tagline: 'Tối giản đen – trắng, sóng âm, góc vát', primary: '#5fe3d6', accent: '#e9d28f', font: 'Be Vietnam Pro', display: 'Saira', effect: 'waves', radius: 3, mode: 'dark', watermark: 'SOLARIS' },
+    hsr: { bg: '#070a1c', ink: '#eef0ff', name: 'Astral Express', game: 'Honkai: Star Rail', tagline: 'Vũ trụ sâu thẳm, vàng & tím oải hương', primary: '#f2c46d', accent: '#a58bff', font: 'Be Vietnam Pro', display: 'Exo 2', effect: 'stars', radius: 12, mode: 'dark', watermark: 'ASTRAL' },
+    zzz: { bg: '#0b0b0b', ink: '#f4f4ee', name: 'New Eridu', game: 'Zenless Zone Zero', tagline: 'Đường phố, neon vàng chanh, phong cách truyện tranh', primary: '#d4ff1e', accent: '#ff6a1a', font: 'Be Vietnam Pro', display: 'Barlow Condensed', effect: 'none', radius: 6, mode: 'dark', watermark: 'ERIDU' },
+    endfield: { bg: '#e9e9e4', ink: '#15171a', name: 'Talos-II', game: 'Arknights: Endfield', tagline: 'Công nghiệp sci-fi, vàng cảnh báo, sáng', primary: '#ffd000', accent: '#17191c', font: 'Be Vietnam Pro', display: 'Chakra Petch', effect: 'grid', radius: 2, mode: 'light', watermark: 'TALOS-II' },
+    nte: { bg: '#0c0717', ink: '#fff4fb', name: 'Hethereau', game: 'Neverness to Everness', tagline: 'Thành phố đêm siêu nhiên, neon hồng – tím', primary: '#ff4fa3', accent: '#7a7dff', font: 'Be Vietnam Pro', display: 'Montserrat', effect: 'bokeh', radius: 16, mode: 'dark', watermark: 'EVERNESS' }
+  };
 
   /* ---------- Dữ liệu mặc định ---------- */
+  const GAMES = ['Genshin Impact', 'Wuthering Waves', 'Honkai: Star Rail', 'Zenless Zone Zero', 'Arknights: Endfield', 'Neverness to Everness'];
   const DEFAULT_DATA = {
-    version: 1,
+    version: 2,
     general: {
-      siteName: 'Nova Studio',
-      logoText: 'Nova',
-      tagline: 'Giải pháp sáng tạo cho thương hiệu của bạn',
-      seoDescription: 'Nova Studio – dịch vụ thiết kế website, đồ hoạ, quay dựng video và marketing online chuyên nghiệp, tận tâm.',
-      footerText: 'Đồng hành cùng bạn xây dựng thương hiệu nổi bật, chuyên nghiệp và khác biệt.',
+      siteName: 'NOVA BOOST',
+      logoText: 'NOVA',
+      tagline: 'Cày thuê game gacha uy tín – cày tay 100%',
+      seoDescription: 'NOVA BOOST – dịch vụ cày thuê Genshin Impact, Honkai: Star Rail, Wuthering Waves, Zenless Zone Zero, Arknights: Endfield, Neverness to Everness. Cày tay 100%, bảo mật, giá tốt.',
+      footerText: 'Game thủ phục vụ game thủ. Giữ nhịp tài khoản của bạn khi bận học, bận làm — an toàn, nhanh chóng, giá hợp lý.',
       showAdminLink: true,
+      games: GAMES.slice(),
       announcement: {
         enabled: true,
-        text: '🎉 Ưu đãi tháng này: Giảm 20% cho khách hàng mới đăng ký tư vấn!',
+        text: '🎮 Khai trương: Giảm 20% đơn đầu tiên cho mọi game!',
         linkText: 'Nhận ưu đãi',
         link: '#contact'
       },
       hero: {
-        badge: 'Sẵn sàng nhận dự án mới',
-        title: 'Biến ý tưởng thành',
-        highlight: 'trải nghiệm ấn tượng',
-        typingPrefix: 'Chúng tôi chuyên',
-        typingWords: ['Thiết kế Website', 'Thiết kế Đồ hoạ', 'Quay dựng Video', 'Marketing Online'],
-        subtitle: 'Đội ngũ trẻ, sáng tạo và tận tâm — mang đến giải pháp trọn gói giúp thương hiệu của bạn nổi bật trên môi trường số.',
-        ctaPrimary: 'Liên hệ tư vấn',
+        badge: 'Đang nhận đơn — phản hồi trong 5 phút',
+        title: 'Cày thuê game gacha',
+        highlight: 'uy tín · an toàn',
+        typingPrefix: 'Nhận cày',
+        typingWords: GAMES.slice(),
+        subtitle: 'Daily, endgame, khám phá bản đồ, farm build… Cày tay 100%, bảo mật tuyệt đối — bạn chỉ việc quay gacha!',
+        ctaPrimary: 'Thuê cày ngay',
         ctaSecondary: 'Xem dịch vụ',
-        cardName: 'Nova Studio',
-        cardRole: 'Creative & Digital Agency',
-        cardInitials: 'NS',
-        floatBadges: ['⚡ Phản hồi trong 15 phút', '🏆 5+ năm kinh nghiệm', '💎 Cam kết chất lượng']
+        cardName: 'NOVA BOOST',
+        cardRole: 'Cày thuê game gacha',
+        cardInitials: 'NB',
+        floatBadges: ['🛡️ 100% cày tay, không tool', '⚡ Phản hồi trong 5 phút', '⭐ 1.500+ đơn hoàn thành']
       },
       about: {
-        text: 'Chúng tôi là một studio sáng tạo với niềm đam mê thiết kế và công nghệ. Mỗi dự án là một câu chuyện riêng — chúng tôi lắng nghe, thấu hiểu và biến mong muốn của bạn thành sản phẩm đẹp, hiệu quả và bền vững.',
-        highlights: ['Tư vấn miễn phí, báo giá minh bạch', 'Bàn giao đúng hạn, hỗ trợ trọn đời', 'Thiết kế độc quyền, không dùng mẫu có sẵn', 'Tối ưu cho điện thoại & tốc độ tải trang'],
+        text: 'NOVA BOOST là đội ngũ game thủ lâu năm, chơi và hiểu rõ từng tựa game gacha. Chúng tôi giúp bạn giữ nhịp tài khoản khi bận rộn: không bỏ lỡ sự kiện, không phí thể lực, endgame luôn full sao.',
+        highlights: ['Cày tay 100% – tuyệt đối không tool/hack', 'Báo cáo ảnh/video từng đơn', 'Bảo mật thông tin tài khoản', 'Nhận mọi server: Asia, America, Europe, TW/HK/MO'],
+        tiles: ['Cày tay 100% – không tool', 'Bảo mật tài khoản tuyệt đối'],
         experienceYears: '5+',
-        experienceLabel: 'Năm kinh nghiệm'
+        experienceLabel: 'Năm kinh nghiệm cày thuê'
       },
       stats: [
-        { value: 250, suffix: '+', label: 'Dự án hoàn thành' },
-        { value: 180, suffix: '+', label: 'Khách hàng hài lòng' },
-        { value: 98, suffix: '%', label: 'Tỉ lệ quay lại' },
-        { value: 24, suffix: '/7', label: 'Hỗ trợ khách hàng' }
+        { value: 1500, suffix: '+', label: 'Đơn hoàn thành' },
+        { value: 800, suffix: '+', label: 'Khách hàng tin tưởng' },
+        { value: 100, suffix: '%', label: 'Cày tay, không tool' },
+        { value: 24, suffix: '/7', label: 'Nhận đơn & hỗ trợ' }
       ]
     },
 
     theme: {
+      skin: 'genshin',         // default | genshin | wuwa | hsr | zzz | endfield | nte
+      skinSwitcher: true,      // hiện nút "Đổi phong cách" để khách xem thử
       mode: 'dark',            // dark | light | auto
-      primary: '#7c5cff',
-      accent: '#22d3ee',
-      radius: 14,
+      primary: '#d8b36a',
+      accent: '#72c7c9',
+      radius: 12,
       font: 'Be Vietnam Pro',
-      effect: 'particles',     // particles | stars | snow | bubbles | none
+      effect: 'stars',         // particles | stars | snow | bubbles | waves | grid | bokeh | none
       revealStyle: 'fade-up',  // fade-up | zoom | slide | blur | flip | none
       heroLayout: 'split',     // split | center
       cardStyle: 'glass',      // glass | solid | outline
@@ -166,60 +197,70 @@
 
     sections: [
       { id: 'hero', name: 'Trang chủ', title: '', subtitle: '', visible: true },
-      { id: 'about', name: 'Giới thiệu', title: 'Về chúng tôi', subtitle: 'Sáng tạo – Tận tâm – Hiệu quả', visible: true },
-      { id: 'services', name: 'Dịch vụ', title: 'Dịch vụ của chúng tôi', subtitle: 'Giải pháp trọn gói cho mọi nhu cầu của bạn', visible: true },
-      { id: 'process', name: 'Quy trình', title: 'Quy trình làm việc', subtitle: '4 bước đơn giản – rõ ràng – minh bạch', visible: true },
-      { id: 'pricing', name: 'Bảng giá', title: 'Bảng giá tham khảo', subtitle: 'Chọn gói phù hợp, nâng cấp bất cứ lúc nào', visible: true },
-      { id: 'testimonials', name: 'Đánh giá', title: 'Khách hàng nói gì', subtitle: 'Niềm tin của khách hàng là động lực của chúng tôi', visible: true },
-      { id: 'faq', name: 'Hỏi đáp', title: 'Câu hỏi thường gặp', subtitle: 'Giải đáp nhanh những thắc mắc phổ biến', visible: true },
-      { id: 'contact', name: 'Liên hệ', title: 'Liên hệ với chúng tôi', subtitle: 'Để lại lời nhắn — chúng tôi sẽ phản hồi ngay', visible: true }
+      { id: 'about', name: 'Giới thiệu', title: 'Về NOVA BOOST', subtitle: 'Game thủ phục vụ game thủ', visible: true },
+      { id: 'services', name: 'Dịch vụ', title: 'Dịch vụ cày thuê', subtitle: 'Chọn game của bạn — chúng tôi lo phần còn lại', visible: true },
+      { id: 'process', name: 'Quy trình', title: 'Quy trình thuê cày', subtitle: '4 bước – nhanh gọn – an toàn', visible: true },
+      { id: 'pricing', name: 'Bảng giá', title: 'Bảng giá tham khảo', subtitle: 'Giá tốt – minh bạch – không phát sinh', visible: true },
+      { id: 'testimonials', name: 'Đánh giá', title: 'Khách hàng nói gì', subtitle: 'Hơn 800 game thủ đã tin tưởng', visible: true },
+      { id: 'faq', name: 'Hỏi đáp', title: 'Câu hỏi thường gặp', subtitle: 'An toàn tài khoản là ưu tiên số 1', visible: true },
+      { id: 'contact', name: 'Liên hệ', title: 'Liên hệ thuê cày', subtitle: 'Nhắn tin để được báo giá trong 5 phút', visible: true }
     ],
 
     services: [
-      { id: 's1', icon: 'code', title: 'Thiết kế Website', category: 'Công nghệ', short: 'Website hiện đại, chuẩn SEO, tối ưu tốc độ và hiển thị hoàn hảo trên mọi thiết bị.', desc: 'Chúng tôi thiết kế và lập trình website theo yêu cầu: giới thiệu doanh nghiệp, bán hàng, landing page… Giao diện độc quyền, quản trị dễ dàng, bàn giao mã nguồn đầy đủ.', features: ['Giao diện độc quyền theo thương hiệu', 'Chuẩn SEO & tối ưu tốc độ', 'Tương thích mọi thiết bị', 'Trang quản trị dễ sử dụng', 'Bảo hành & hỗ trợ trọn đời'], price: 'Từ 4.900.000đ', featured: true, visible: true },
-      { id: 's2', icon: 'palette', title: 'Thiết kế Đồ hoạ', category: 'Sáng tạo', short: 'Logo, bộ nhận diện thương hiệu, banner, ấn phẩm quảng cáo chuyên nghiệp.', desc: 'Xây dựng hình ảnh thương hiệu nhất quán và chuyên nghiệp: logo, name card, bao bì, banner mạng xã hội, catalogue, profile công ty…', features: ['Logo & bộ nhận diện', 'Banner / Poster / Social post', 'Chỉnh sửa không giới hạn', 'Bàn giao file gốc'], price: 'Từ 1.500.000đ', featured: false, visible: true },
-      { id: 's3', icon: 'video', title: 'Quay dựng Video', category: 'Sáng tạo', short: 'Video quảng cáo, TVC, video TikTok/Reels bắt trend, thu hút người xem.', desc: 'Từ kịch bản đến hậu kỳ: quay phim, dựng video, chèn hiệu ứng, âm thanh, phụ đề. Phù hợp quảng cáo, giới thiệu sản phẩm, sự kiện.', features: ['Lên kịch bản sáng tạo', 'Quay 4K, thiết bị chuyên nghiệp', 'Hậu kỳ màu & âm thanh', 'Tối ưu cho TikTok / Reels / YouTube'], price: 'Từ 3.000.000đ', featured: false, visible: true },
-      { id: 's4', icon: 'megaphone', title: 'Marketing Online', category: 'Marketing', short: 'Quảng cáo Facebook, Google, TikTok — tiếp cận đúng khách hàng, tối ưu chi phí.', desc: 'Lập kế hoạch và triển khai chiến dịch quảng cáo đa kênh, theo dõi và tối ưu liên tục, báo cáo minh bạch hằng tuần.', features: ['Nghiên cứu khách hàng mục tiêu', 'Chạy & tối ưu quảng cáo', 'Báo cáo hiệu quả hằng tuần', 'Tư vấn nội dung'], price: 'Từ 5.000.000đ/tháng', featured: true, visible: true },
-      { id: 's5', icon: 'lightbulb', title: 'Tư vấn Thương hiệu', category: 'Marketing', short: 'Định vị thương hiệu, chiến lược truyền thông giúp bạn khác biệt trên thị trường.', desc: 'Phân tích thị trường, đối thủ và khách hàng để xây dựng chiến lược thương hiệu dài hạn, thông điệp rõ ràng và nhất quán.', features: ['Phân tích thị trường & đối thủ', 'Định vị & thông điệp', 'Lộ trình truyền thông'], price: 'Liên hệ', featured: false, visible: true },
-      { id: 's6', icon: 'wrench', title: 'Hỗ trợ Kỹ thuật', category: 'Công nghệ', short: 'Bảo trì website, tên miền, hosting, email doanh nghiệp — nhanh chóng, tận tình.', desc: 'Dịch vụ bảo trì định kỳ, sao lưu dữ liệu, cập nhật bảo mật, xử lý sự cố và hỗ trợ kỹ thuật 24/7.', features: ['Bảo trì & sao lưu định kỳ', 'Tên miền, hosting, email', 'Xử lý sự cố 24/7'], price: 'Từ 500.000đ/tháng', featured: false, visible: true }
+      { id: 'g1', icon: 'compass', title: 'Khám phá bản đồ 100%', category: 'Genshin Impact', short: 'Mở dịch chuyển, nhặt rương, Thần Đồng, giải câu đố — lấy trọn Nguyên Thạch trên bản đồ.', desc: 'Khám phá toàn bộ khu vực bạn chọn: mở điểm dịch chuyển, tượng Thất Thiên Thần, rương, thần đồng, câu đố và nhiệm vụ thế giới. Báo cáo ảnh phần trăm khám phá trước – sau.', features: ['Mở toàn bộ điểm dịch chuyển', 'Nhặt rương & Thần Đồng', 'Giải câu đố, nhiệm vụ thế giới', 'Báo cáo ảnh % khám phá'], price: 'Từ 80.000đ/khu vực', featured: true, visible: true },
+      { id: 'g2', icon: 'trophy', title: 'La Hoàn 36★ & Kịch Trường', category: 'Genshin Impact', short: 'Clear La Hoàn Thâm Cảnh 36 sao và Kịch Trường Ảo Ảnh mỗi kỳ, nhận đủ Nguyên Thạch.', desc: 'Clear endgame mỗi kỳ làm mới với đội hình phù hợp tài khoản của bạn. Có ảnh/video kết quả.', features: ['La Hoàn Thâm Cảnh 36★', 'Kịch Trường Ảo Ảnh', 'Tư vấn đội hình kèm theo'], price: 'Từ 60.000đ/kỳ', featured: false, visible: true },
+      { id: 'g3', icon: 'gem', title: 'Farm Thánh Di Vật & nâng nhân vật', category: 'Genshin Impact', short: 'Farm bí cảnh, nguyên liệu đột phá, thiên phú — build nhân vật chuẩn chỉ.', desc: 'Dùng nhựa hằng ngày để farm Thánh Di Vật, nguyên liệu đột phá, thiên phú và vũ khí theo nhân vật bạn chỉ định.', features: ['Farm Thánh Di Vật theo set', 'Nguyên liệu đột phá & thiên phú', 'Không dùng Nguyên Thạch khi chưa được phép'], price: 'Từ 50.000đ/ngày', featured: false, visible: true },
+      { id: 'w1', icon: 'trophy', title: 'Tower of Adversity full sao', category: 'Wuthering Waves', short: 'Clear Tower of Adversity mỗi chu kỳ, nhận trọn Astrite thưởng.', desc: 'Clear toàn bộ tầng Tower of Adversity và nội dung endgame theo chu kỳ, tối ưu đội hình theo tài khoản.', features: ['Full sao mỗi chu kỳ', 'Ảnh báo cáo kết quả', 'Tư vấn đội hình'], price: 'Từ 60.000đ/kỳ', featured: true, visible: true },
+      { id: 'w2', icon: 'wave', title: 'Farm Echo & nâng Resonator', category: 'Wuthering Waves', short: 'Săn Echo đúng set, farm tài nguyên đột phá, nâng cấp Resonator.', desc: 'Săn Echo đúng set và chỉ số chính, farm nguyên liệu nâng cấp nhân vật, vũ khí và kỹ năng.', features: ['Săn Echo theo set yêu cầu', 'Tune chỉ số', 'Farm nguyên liệu nâng cấp'], price: 'Từ 50.000đ/ngày', featured: false, visible: true },
+      { id: 'h1', icon: 'trophy', title: 'Endgame: Hỗn Độn · Hư Cấu · Tận Thế', category: 'Honkai: Star Rail', short: 'Clear Memory of Chaos, Pure Fiction, Apocalyptic Shadow full sao mỗi kỳ.', desc: 'Clear toàn bộ ba chế độ endgame mỗi kỳ làm mới, nhận đủ Tinh Ngọc. Có ảnh/video báo cáo.', features: ['Memory of Chaos full sao', 'Pure Fiction full sao', 'Apocalyptic Shadow full sao'], price: 'Từ 70.000đ/kỳ', featured: true, visible: true },
+      { id: 'h2', icon: 'train', title: 'Vũ Trụ Mô Phỏng & farm Di Vật', category: 'Honkai: Star Rail', short: 'Cày Simulated / Divergent Universe hằng tuần, farm Di Vật & Phụ Kiện Vị Diện.', desc: 'Hoàn thành điểm tuần Vũ Trụ Mô Phỏng, farm Di Vật và Phụ Kiện Vị Diện theo set bạn cần.', features: ['Điểm tuần Vũ Trụ Mô Phỏng', 'Farm Di Vật theo set', 'Dùng hết Sức Mạnh Khai Phá'], price: 'Từ 40.000đ/tuần', featured: false, visible: true },
+      { id: 'z1', icon: 'tv', title: 'Shiyu Defense S-Rank', category: 'Zenless Zone Zero', short: 'Clear Shiyu Defense & Deadly Assault điểm tối đa, nhận đủ Polychrome.', desc: 'Clear nội dung endgame theo kỳ với điểm số cao nhất có thể theo tài khoản của bạn.', features: ['Shiyu Defense S-Rank', 'Deadly Assault', 'Ảnh báo cáo điểm số'], price: 'Từ 60.000đ/kỳ', featured: false, visible: true },
+      { id: 'z2', icon: 'zap', title: 'Farm Drive Disc & Hollow Zero', category: 'Zenless Zone Zero', short: 'Farm Drive Disc chuẩn chỉ số, cày Hollow Zero và nhiệm vụ tuần.', desc: 'Dùng pin hằng ngày farm Drive Disc theo set, hoàn thành Hollow Zero / nội dung tuần và nhiệm vụ đại lý.', features: ['Farm Drive Disc theo set', 'Hollow Zero hằng tuần', 'Nhiệm vụ đại lý'], price: 'Từ 50.000đ/ngày', featured: false, visible: true },
+      { id: 'e1', icon: 'factory', title: 'Xây dây chuyền nhà máy', category: 'Arknights: Endfield', short: 'Thiết kế dây chuyền sản xuất tự động tối ưu, vận hành trơn tru.', desc: 'Lên sơ đồ và xây dựng dây chuyền sản xuất tự động, tối ưu băng chuyền và năng lượng để tài nguyên về đều đặn.', features: ['Thiết kế sơ đồ tối ưu', 'Mở khoá công nghệ', 'Hướng dẫn vận hành'], price: 'Từ 100.000đ/đơn', featured: true, visible: true },
+      { id: 'e2', icon: 'rocket', title: 'Cày cốt truyện & nâng Operator', category: 'Arknights: Endfield', short: 'Cày nhiệm vụ chính – phụ, farm nguyên liệu, nâng cấp Operator & trang bị.', desc: 'Hoàn thành cốt truyện, nhiệm vụ phụ, farm nguyên liệu và nâng cấp Operator theo đội hình bạn muốn.', features: ['Cốt truyện chính & phụ', 'Farm nguyên liệu', 'Nâng cấp Operator'], price: 'Từ 60.000đ/ngày', featured: false, visible: true },
+      { id: 'n1', icon: 'building', title: 'Cày cốt truyện & khám phá thành phố', category: 'Neverness to Everness', short: 'Làm nhiệm vụ chính, sự kiện thành phố, thu thập vật phẩm và thành tựu.', desc: 'Hoàn thành cốt truyện, khám phá thành phố, thu thập vật phẩm và thành tựu giúp tài khoản đi nhanh hơn.', features: ['Nhiệm vụ chính & phụ', 'Khám phá, thu thập', 'Thành tựu'], price: 'Liên hệ', featured: false, visible: true },
+      { id: 'n2', icon: 'calendar', title: 'Daily & sự kiện NTE', category: 'Neverness to Everness', short: 'Nhiệm vụ hằng ngày, sự kiện giới hạn — không bỏ lỡ phần thưởng nào.', desc: 'Làm nhiệm vụ hằng ngày, hằng tuần và sự kiện giới hạn thời gian.', features: ['Daily & weekly', 'Sự kiện giới hạn', 'Báo cáo hằng tuần'], price: 'Liên hệ', featured: false, visible: true },
+      { id: 'm1', icon: 'calendar', title: 'Gói Daily trọn tháng', category: 'Mọi game', short: 'Daily, weekly, dùng hết thể lực mỗi ngày — bạn chỉ việc quay gacha.', desc: 'Đăng nhập mỗi ngày, làm daily/weekly, dùng hết thể lực vào nội dung bạn chọn, nhận quà sự kiện. Áp dụng cho mọi game trong danh sách.', features: ['Daily + weekly mỗi ngày', 'Dùng hết thể lực/nhựa/pin', 'Nhận quà sự kiện', 'Báo cáo hằng tuần'], price: 'Từ 150.000đ/tháng', featured: true, visible: true },
+      { id: 'm2', icon: 'lightbulb', title: 'Tư vấn build & đội hình', category: 'Mọi game', short: 'Tư vấn nhân vật, vũ khí, set đồ, đội hình meta phù hợp tài khoản.', desc: 'Xem tài khoản và tư vấn nên đầu tư nhân vật nào, build ra sao, quay banner nào để tối ưu tài nguyên.', features: ['Phân tích tài khoản', 'Gợi ý build & đội hình', 'Lộ trình quay banner'], price: 'Miễn phí khi thuê', featured: false, visible: true }
     ],
 
     process: [
-      { icon: 'message', title: 'Tiếp nhận & Tư vấn', desc: 'Lắng nghe nhu cầu, tư vấn giải pháp phù hợp và báo giá chi tiết miễn phí.' },
-      { icon: 'pen', title: 'Lên ý tưởng & Thiết kế', desc: 'Phác thảo, thiết kế bản mẫu và chỉnh sửa đến khi bạn hài lòng.' },
-      { icon: 'rocket', title: 'Triển khai', desc: 'Thực hiện dự án đúng tiến độ, cập nhật tình hình liên tục.' },
-      { icon: 'award', title: 'Bàn giao & Hỗ trợ', desc: 'Bàn giao, hướng dẫn sử dụng và đồng hành hỗ trợ lâu dài.' }
+      { icon: 'message', title: 'Chọn game & dịch vụ', desc: 'Nhắn Zalo/Facebook: game, server, nội dung cần cày — báo giá ngay trong 5 phút.' },
+      { icon: 'shield', title: 'Giao tài khoản an toàn', desc: 'Thông tin tài khoản được bảo mật tuyệt đối, chỉ người phụ trách đơn nắm giữ.' },
+      { icon: 'swords', title: 'Cày tay 100%', desc: 'Người thật cày tay, không tool/hack, cập nhật tiến độ liên tục.' },
+      { icon: 'trophy', title: 'Bàn giao & báo cáo', desc: 'Gửi ảnh/video kết quả, bạn kiểm tra rồi thanh toán và đổi mật khẩu.' }
     ],
 
     pricing: [
-      { id: 'p1', name: 'Cơ bản', price: '2.990.000đ', period: '/ dự án', desc: 'Phù hợp cá nhân, cửa hàng nhỏ mới bắt đầu.', features: ['Landing page 1 trang', 'Tên miền & hosting 1 năm', 'Tối ưu điện thoại', 'Hỗ trợ 3 tháng'], highlight: false, cta: 'Chọn gói này' },
-      { id: 'p2', name: 'Chuyên nghiệp', price: '6.990.000đ', period: '/ dự án', desc: 'Lựa chọn tốt nhất cho doanh nghiệp vừa và nhỏ.', features: ['Website đến 8 trang', 'Trang quản trị nội dung', 'Chuẩn SEO cơ bản', 'Logo & banner đi kèm', 'Hỗ trợ 12 tháng'], highlight: true, cta: 'Chọn gói này' },
-      { id: 'p3', name: 'Doanh nghiệp', price: 'Liên hệ', period: '', desc: 'Giải pháp tuỳ biến toàn diện theo yêu cầu.', features: ['Tính năng theo yêu cầu', 'Tích hợp thanh toán, CRM', 'Marketing tổng thể', 'Quản lý dự án riêng', 'Hỗ trợ trọn đời'], highlight: false, cta: 'Nhận tư vấn' }
+      { id: 'p1', name: 'Gói Lượt', price: '49.000đ', period: '/ lượt', desc: 'Thuê theo từng nhiệm vụ, từng kỳ endgame.', features: ['Chọn 1 nội dung bất kỳ', 'Hoàn thành trong 24h', 'Ảnh báo cáo kết quả', 'Mọi server'], highlight: false, cta: 'Thuê ngay' },
+      { id: 'p2', name: 'Gói Daily Tháng', price: '150.000đ', period: '/ tháng / game', desc: 'Rảnh tay cả tháng, tài khoản vẫn đều đặn lên.', features: ['Daily + weekly mỗi ngày', 'Dùng hết thể lực', 'Nhận quà sự kiện', 'Báo cáo hằng tuần', 'Tặng 1 lượt endgame/tháng'], highlight: true, cta: 'Chọn gói này' },
+      { id: 'p3', name: 'Gói VIP Trọn Gói', price: '399.000đ', period: '/ tháng', desc: 'Chăm sóc toàn diện nhiều game cùng lúc.', features: ['Tối đa 3 game', 'Daily + toàn bộ endgame', 'Farm build theo yêu cầu', 'Khám phá bản đồ mới', 'Ưu tiên xử lý 24/7'], highlight: false, cta: 'Nhận tư vấn' }
     ],
 
     testimonials: [
-      { name: 'Nguyễn Minh Anh', role: 'Chủ shop thời trang', text: 'Website đẹp hơn mong đợi, đơn hàng online tăng rõ rệt chỉ sau 1 tháng. Đội ngũ hỗ trợ rất nhiệt tình!', rating: 5 },
-      { name: 'Trần Quốc Bảo', role: 'Giám đốc công ty TNHH ABC', text: 'Làm việc chuyên nghiệp, đúng hạn, báo giá rõ ràng. Bộ nhận diện thương hiệu mới giúp công ty chúng tôi tự tin hơn hẳn.', rating: 5 },
-      { name: 'Lê Thu Hà', role: 'Founder quán cà phê Mộc', text: 'Video quảng cáo cực kỳ cuốn, lượt xem TikTok tăng vọt. Chắc chắn sẽ tiếp tục hợp tác lâu dài.', rating: 5 },
-      { name: 'Phạm Đức Long', role: 'Kinh doanh bất động sản', text: 'Chiến dịch quảng cáo được tối ưu tốt, chi phí mỗi khách hàng giảm gần một nửa. Rất đáng tiền!', rating: 4 }
+      { name: 'Minh Lữ Khách', role: 'Người chơi Genshin – AR 60', text: 'Thuê clear La Hoàn 36★ ba kỳ liền, lần nào cũng xong trong ngày. Có ảnh báo cáo đầy đủ, rất yên tâm!', rating: 5 },
+      { name: 'Thảo Nguyễn', role: 'Main Star Rail & ZZZ', text: 'Gói daily tháng quá tiện, đi làm bận vẫn không bỏ lỡ sự kiện nào. Shop trả lời tin nhắn cực nhanh.', rating: 5 },
+      { name: 'Hoàng Long', role: 'Người chơi Wuthering Waves', text: 'Farm Echo đúng set mình cần, chỉ số đẹp hơn mình tự farm nhiều. Giá hợp lý, sẽ thuê tiếp.', rating: 5 },
+      { name: 'Khánh Vy', role: 'Tân thủ Arknights: Endfield', text: 'Nhờ dựng giúp dây chuyền nhà máy, giờ tài nguyên tự chảy về đều đều. Mười điểm không có nhưng!', rating: 5 }
     ],
 
     faq: [
-      { q: 'Thời gian hoàn thành một dự án là bao lâu?', a: 'Tuỳ quy mô: landing page khoảng 5–7 ngày, website doanh nghiệp 2–4 tuần, bộ nhận diện thương hiệu 1–2 tuần. Tiến độ cụ thể sẽ được thống nhất khi ký hợp đồng.' },
-      { q: 'Tôi có được chỉnh sửa sau khi bàn giao không?', a: 'Có. Bạn được chỉnh sửa miễn phí trong thời gian bảo hành và được hướng dẫn tự cập nhật nội dung qua trang quản trị.' },
-      { q: 'Hình thức thanh toán như thế nào?', a: 'Thanh toán theo 2–3 đợt: đặt cọc khi ký hợp đồng, phần còn lại khi nghiệm thu. Hỗ trợ chuyển khoản và tiền mặt.' },
-      { q: 'Có hỗ trợ khách hàng ở tỉnh khác không?', a: 'Hoàn toàn được. Chúng tôi làm việc online qua Zalo, Google Meet và hỗ trợ khách hàng trên toàn quốc.' }
+      { q: 'Cày thuê có bị khoá tài khoản không?', a: 'Chúng tôi cày tay 100%, không dùng tool, hack hay phần mềm thứ ba — giống hệt bạn tự chơi. Tài khoản luôn được đăng nhập và chơi như người bình thường.' },
+      { q: 'Thông tin tài khoản của tôi có được bảo mật?', a: 'Thông tin chỉ người phụ trách đơn nắm giữ, không chia sẻ, không tiêu tiền tệ cao cấp khi bạn chưa cho phép. Sau khi hoàn thành, bạn nên đổi mật khẩu.' },
+      { q: 'Nhận cày những server nào?', a: 'Nhận tất cả server: Asia, America, Europe, TW/HK/MO cho mọi game trong danh sách.' },
+      { q: 'Thanh toán như thế nào?', a: 'Đặt cọc 30–50% khi nhận đơn, phần còn lại sau khi bàn giao. Hỗ trợ chuyển khoản ngân hàng, MoMo, ZaloPay.' },
+      { q: 'Bao lâu thì xong đơn?', a: 'Đơn endgame thường xong trong 24h, khám phá bản đồ 1–3 ngày tuỳ khu vực. Thời gian cụ thể được báo khi nhận đơn.' }
     ],
 
     contact: {
       phone: '0909 123 456',
-      email: 'hello@novastudio.vn',
+      email: 'hotro@novaboost.vn',
       zalo: '0909123456',
       messenger: 'https://m.me/',
-      address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
-      hours: 'Thứ 2 – Thứ 7: 8:00 – 21:00',
-      mapQuery: 'Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
-      showMap: true,
+      address: 'Làm việc online – nhận đơn toàn quốc',
+      hours: 'Nhận đơn 24/7 • Cày 8:00 – 24:00',
+      mapQuery: '',
+      showMap: false,
       showForm: true,
       floatingButtons: true,
       socials: { facebook: 'https://facebook.com/', youtube: 'https://youtube.com/', tiktok: 'https://tiktok.com/', instagram: '' }
@@ -232,6 +273,8 @@
       showVisualizer: true,
       shuffle: false,
       tracks: [
+        { id: 't0', type: 'synth', preset: 'epic', title: 'Epic Adventure', artist: 'Nhạc tích hợp' },
+        { id: 't5', type: 'synth', preset: 'synthwave', title: 'Neon Night', artist: 'Nhạc tích hợp' },
         { id: 't1', type: 'synth', preset: 'lofi', title: 'Lofi Chill', artist: 'Nhạc tích hợp' },
         { id: 't2', type: 'synth', preset: 'ambient', title: 'Ambient Dream', artist: 'Nhạc tích hợp' },
         { id: 't3', type: 'synth', preset: 'piano', title: 'Piano Calm', artist: 'Nhạc tích hợp' },
@@ -279,6 +322,15 @@
     return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
   }
 
+  // Màu chữ nên dùng trên nền màu chính: tối nếu màu sáng (vàng, chanh…), trắng nếu màu đậm
+  function onColor(hex) {
+    const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex || '');
+    if (!m) return '#fff';
+    const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    const L = 0.2126 * lin(parseInt(m[1], 16)) + 0.7152 * lin(parseInt(m[2], 16)) + 0.0722 * lin(parseInt(m[3], 16));
+    return L > 0.3 ? '#17130a' : '#fff';
+  }
+
   function uid(prefix) { return (prefix || 'id') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
   function today() {
@@ -322,6 +374,7 @@
     },
     hash,
     uid,
+    onColor,
     clone
   };
 
@@ -371,6 +424,7 @@
   global.AudioDB = AudioDB;
   global.ICONS = ICONS;
   global.SERVICE_ICONS = SERVICE_ICONS;
+  global.SKINS = SKINS;
   global.icon = icon;
   global.esc = esc;
 })(window);
