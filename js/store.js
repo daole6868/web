@@ -105,12 +105,16 @@
     wave: '<path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2"/>',
     wind: '<path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>',
     tv: '<rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/>',
-    building: '<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>'
+    building: '<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>',
+    zalo: '<text x="12" y="15.6" text-anchor="middle" font-size="9.5" font-weight="800" textLength="21" lengthAdjust="spacingAndGlyphs" font-family="Arial, sans-serif" fill="currentColor" stroke="none">Zalo</text>',
+    messenger: '<path d="M12 2.5c-5.2 0-9.5 3.9-9.5 8.8 0 2.8 1.4 5.2 3.6 6.8v3.4l3.3-1.8c.8.2 1.7.4 2.6.4 5.2 0 9.5-3.9 9.5-8.8S17.2 2.5 12 2.5Z"/><path d="m6.8 13.6 3.4-3.6 2.2 2.1 3.8-3.7-3.4 3.6-2.2-2.1Z" fill="currentColor"/>',
+    discord: '<path d="M8.5 17.5c-2.2 0-4.2-1-5.5-2.2.2-4.2 1.3-8 3.3-10.8 1.3-.6 2.7-1 4.1-1.2l.6 1.2h2l.6-1.2c1.4.2 2.8.6 4.1 1.2 2 2.8 3.1 6.6 3.3 10.8-1.3 1.2-3.3 2.2-5.5 2.2l-1-1.8"/><circle cx="9" cy="11.5" r="1.3" fill="currentColor"/><circle cx="15" cy="11.5" r="1.3" fill="currentColor"/><path d="M7.5 15.3c3 1.4 6 1.4 9 0"/>',
+    headset: '<path d="M3 13a9 9 0 0 1 18 0"/><rect x="2.5" y="13" width="5" height="7" rx="2"/><rect x="16.5" y="13" width="5" height="7" rx="2"/><path d="M19 20v.5a2.5 2.5 0 0 1-2.5 2.5H13"/>'
   };
 
   function icon(name, cls) {
     const body = ICONS[name] || ICONS.sparkles;
-    return '<svg class="ico ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + body + '</svg>';
+    return '<svg class="ico ico--' + name + ' ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + body + '</svg>';
   }
 
   /* Icon dùng cho dịch vụ / quy trình (hiển thị trong bộ chọn icon ở trang quản trị) */
@@ -272,7 +276,21 @@
       mapQuery: '',
       showMap: false,
       showForm: true,
-      floatingButtons: true,
+      floatingButtons: true,   // bật thanh liên hệ nhanh
+      quick: {
+        title: 'Hỗ trợ nhanh',
+        subtitle: 'Phản hồi trong 5 phút',
+        side: 'right',          // right | left
+        autoPeek: true,         // tự hiện khi tải trang rồi lùi vào
+        peekSeconds: 2,
+        items: [
+          { id: 'q1', icon: 'zalo', label: 'Zalo', desc: 'Tư vấn & báo giá nhanh', url: '', color: '', visible: true },
+          { id: 'q2', icon: 'messenger', label: 'Messenger', desc: 'Nhắn tin qua Facebook', url: '', color: '', visible: true },
+          { id: 'q3', icon: 'phone', label: 'Gọi điện', desc: '', url: '', color: '', visible: true },
+          { id: 'q4', icon: 'send', label: 'Telegram', desc: 'Nhận đơn 24/7', url: 'https://t.me/', color: '', visible: false },
+          { id: 'q5', icon: 'discord', label: 'Discord', desc: 'Cộng đồng game thủ', url: 'https://discord.gg/', color: '', visible: false }
+        ]
+      },
       socials: { facebook: 'https://facebook.com/', youtube: 'https://youtube.com/', tiktok: 'https://tiktok.com/', instagram: '' }
     },
 
@@ -296,6 +314,31 @@
       passwordHash: null // null = dùng mật khẩu mặc định "admin123"
     }
   };
+
+  /* ---------- Thanh liên hệ nhanh: icon, màu & link tự động ---------- */
+  const CONTACT_ICONS = ['zalo', 'messenger', 'phone', 'send', 'discord', 'facebook', 'mail', 'youtube', 'tiktok', 'instagram', 'message', 'headset', 'globe', 'map', 'clock', 'gamepad', 'cart', 'users', 'help', 'gift'];
+  const QUICK_PRESETS = {
+    phone: { color: '#22c55e', url: c => c.phone ? 'tel:' + String(c.phone).replace(/[^\d+]/g, '') : '', desc: c => c.phone },
+    zalo: { color: '#0068ff', url: c => c.zalo ? 'https://zalo.me/' + String(c.zalo).replace(/\D/g, '') : '', desc: c => c.zalo },
+    messenger: { color: 'linear-gradient(135deg,#00b2ff,#a033ff)', url: c => c.messenger || '' },
+    facebook: { color: '#1877f2', url: c => (c.socials || {}).facebook || '' },
+    send: { color: '#229ed9' },
+    discord: { color: '#5865f2' },
+    mail: { url: c => c.email ? 'mailto:' + c.email : '', desc: c => c.email },
+    youtube: { color: '#ff0000', url: c => (c.socials || {}).youtube || '' },
+    tiktok: { color: '#111111', url: c => (c.socials || {}).tiktok || '' },
+    instagram: { color: 'linear-gradient(135deg,#f9ce34,#ee2a7b,#6228d7)', url: c => (c.socials || {}).instagram || '' },
+    map: { url: c => c.address ? 'https://maps.google.com/?q=' + encodeURIComponent(c.mapQuery || c.address) : '', desc: c => c.address },
+    clock: { desc: c => c.hours }
+  };
+  // Trả về { href, color, desc } — để trống link/mô tả thì lấy từ Thông tin liên hệ
+  function quickLink(item, contact) {
+    const p = QUICK_PRESETS[item.icon] || {}, c = contact || {};
+    const href = (item.url || '').trim() || (p.url ? p.url(c) : '');
+    const color = item.color === 'primary' ? '' : (item.color || p.color || '');
+    const desc = (item.desc || '').trim() || (p.desc ? (p.desc(c) || '') : '');
+    return { href, color, desc };
+  }
 
   /* ---------- Tự chọn icon theo nội dung chữ (khi không chọn icon) ---------- */
   const ICON_RULES = [
@@ -547,6 +590,7 @@
     uid,
     onColor,
     guessIcon,
+    quickLink,
     clone
   };
 
@@ -597,6 +641,7 @@
   global.ICONS = ICONS;
   global.SERVICE_ICONS = SERVICE_ICONS;
   global.SKINS = SKINS;
+  global.CONTACT_ICONS = CONTACT_ICONS;
   global.icon = icon;
   global.esc = esc;
 })(window);

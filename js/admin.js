@@ -107,7 +107,7 @@
       case 'icon':
         input = '<input type="hidden" ' + a + ' value="' + esc(val) + '"><div class="icon-picker">' +
           (f.allowAuto ? '<button type="button" data-pick="" class="icon-picker__auto' + (!val ? ' active' : '') + '" title="Tự chọn theo nội dung">Tự động</button>' : '') +
-          SERVICE_ICONS.map(n => '<button type="button" data-pick="' + n + '" class="' + (n === val ? 'active' : '') + '" title="' + n + '">' + icon(n) + '</button>').join('') + '</div>'; break;
+          (f.icons || SERVICE_ICONS).map(n => '<button type="button" data-pick="' + n + '" class="' + (n === val ? 'active' : '') + '" title="' + n + '">' + icon(n) + '</button>').join('') + '</div>'; break;
       default:
         input = '<input id="' + id + '" type="text" ' + a + ' value="' + esc(val) + '" placeholder="' + esc(f.placeholder || '') + '">';
     }
@@ -492,10 +492,21 @@
         ], draft)) +
         panel('Tuỳ chọn hiển thị', 'settings', '', form([
           { key: 'contact.showForm', label: 'Hiện form gửi lời nhắn', type: 'toggle', full: false },
-          { key: 'contact.showMap', label: 'Hiện bản đồ', type: 'toggle', full: false },
-          { key: 'contact.floatingButtons', label: 'Nút gọi / Zalo / Messenger nổi góc màn hình', type: 'toggle' }
-        ], draft));
-      }
+          { key: 'contact.showMap', label: 'Hiện bản đồ', type: 'toggle', full: false }
+        ], draft)) +
+        panel('Thanh liên hệ nhanh', 'headset', 'Nút nhỏ ở cạnh màn hình, bấm vào trượt ra danh sách liên hệ. Có thể tự hiện vài giây khi khách vào trang rồi lùi vào.',
+          form([
+            { key: 'contact.floatingButtons', label: 'Bật thanh liên hệ nhanh', type: 'toggle', full: false },
+            { key: 'contact.quick.autoPeek', label: 'Tự hiện khi tải trang rồi lùi vào', type: 'toggle', full: false },
+            { key: 'contact.quick.peekSeconds', label: 'Thời gian tự hiện', type: 'range', min: 1, max: 8, step: 1, unit: ' giây' },
+            { key: 'contact.quick.side', label: 'Vị trí', type: 'select', options: [['right', 'Cạnh phải màn hình'], ['left', 'Cạnh trái màn hình']] },
+            { key: 'contact.quick.title', label: 'Tiêu đề thanh', type: 'text', placeholder: 'Hỗ trợ nhanh' },
+            { key: 'contact.quick.subtitle', label: 'Dòng phụ (chấm xanh)', type: 'text', placeholder: 'Phản hồi trong 5 phút' }
+          ], draft) +
+          '<h3 style="font-size:.95rem;margin:22px 0 12px">Các mục liên hệ</h3>' + collection(CFG.quick) +
+          '<p class="field__hint" style="margin-top:10px">Mẹo: với Zalo, Messenger, Gọi điện, Email, Facebook… để trống ô Link thì tự lấy từ “Thông tin liên hệ” ở trên. Bấm con mắt để ẩn/hiện từng mục.</p>');
+      },
+      after() { bindCollection(CFG.quick, () => go('contact', true)); }
     },
 
     music: {
@@ -697,7 +708,23 @@
   };
 
   /* ---------------- Cấu hình các danh sách ---------------- */
+  const QUICK_COLORS = [['', 'Tự động theo biểu tượng'], ['primary', 'Màu chính của website'], ['#22c55e', 'Xanh lá'], ['#0068ff', 'Xanh Zalo'], ['#1877f2', 'Xanh Facebook'], ['#229ed9', 'Xanh Telegram'], ['#5865f2', 'Tím Discord'], ['#ef4444', 'Đỏ'], ['#f59e0b', 'Cam'], ['#ec4899', 'Hồng'], ['#111111', 'Đen']];
   const CFG = {
+    quick: {
+      path: 'contact.quick.items', name: 'mục liên hệ', toggleKey: 'visible',
+      make: () => ({ id: Store.uid('q'), icon: 'message', label: '', desc: '', url: '', color: '', visible: true }),
+      title: it => it.label || '(chưa đặt tên)',
+      sub: it => { const l = Store.quickLink(it, draft.contact); return (l.href || '⚠ Chưa có link — mục này sẽ không hiện') + (l.desc ? ' • ' + l.desc : ''); },
+      iconOf: it => { const l = Store.quickLink(it, draft.contact); return '<span style="width:100%;height:100%;border-radius:inherit;display:grid;place-items:center;' + (l.color ? 'background:' + esc(l.color) + ';color:#fff' : '') + '">' + icon(it.icon || 'message') + '</span>'; },
+      fields: [
+        { key: 'label', label: 'Tên', type: 'text', required: true, placeholder: 'VD: Zalo, Telegram, Discord…' },
+        { key: 'desc', label: 'Mô tả (nếu có)', type: 'text', placeholder: 'VD: Tư vấn 24/7' },
+        { key: 'url', label: 'Link', type: 'text', full: true, placeholder: 'https://… , tel:09…, mailto:…', hint: 'Để trống với Zalo / Messenger / Gọi điện / Email / Facebook… để dùng thông tin liên hệ có sẵn' },
+        { key: 'color', label: 'Màu nút', type: 'select', options: QUICK_COLORS },
+        { key: 'visible', label: 'Hiển thị', type: 'toggle', full: false },
+        { key: 'icon', label: 'Biểu tượng', type: 'icon', icons: CONTACT_ICONS }
+      ]
+    },
     badges: {
       path: 'general.hero.floatBadges', name: 'nhãn', make: () => ({ icon: '', text: '' }),
       title: it => it.text || '(trống)', sub: it => it.icon ? 'Biểu tượng: ' + it.icon : 'Biểu tượng: tự động (' + Store.guessIcon(it.text) + ')',

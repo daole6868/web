@@ -290,13 +290,38 @@
       (g.showAdminLink ? '<a href="admin.html">' + icon('lock') + ' Quản trị</a>' : '') + '</div></div>';
   }
 
-  function renderFab() {
-    const c = D.contact, box = $('#fab-contact');
-    if (!c.floatingButtons) { box.remove(); return; }
+  /* Thanh liên hệ nhanh bên cạnh màn hình (thu gọn thành 1 nút nhỏ) */
+  let dockPeek = () => {};
+  function renderDock() {
+    const c = D.contact, q = c.quick || {}, box = $('#dock');
+    const items = (q.items || []).filter(it => it.visible !== false).map(it => Object.assign({}, it, Store.quickLink(it, c))).filter(it => it.href);
+    if (!c.floatingButtons || !items.length) { box.remove(); return; }
+    box.classList.toggle('dock--left', q.side === 'left');
     box.innerHTML =
-      (c.messenger ? '<a class="fab fab--msg" href="' + esc(c.messenger) + '" target="_blank" rel="noopener">' + icon('message') + '<span class="fab__tip">Messenger</span></a>' : '') +
-      (c.zalo ? '<a class="fab fab--zalo" href="https://zalo.me/' + esc(String(c.zalo).replace(/\D/g, '')) + '" target="_blank" rel="noopener">Zalo<span class="fab__tip">Chat Zalo</span></a>' : '') +
-      (c.phone ? '<a class="fab fab--phone" href="' + telHref(c.phone) + '">' + icon('phone') + '<span class="fab__tip">Gọi ' + esc(c.phone) + '</span></a>' : '');
+      '<button class="dock__tab" type="button" aria-expanded="false" aria-controls="dock-panel" aria-label="Mở hỗ trợ nhanh">' + icon('headset') + '<span class="dock__dot"></span></button>' +
+      '<div class="dock__panel" id="dock-panel" role="region" aria-label="' + esc(q.title || 'Hỗ trợ nhanh') + '">' +
+        ((q.title || q.subtitle) ? '<div class="dock__head">' + (q.title ? '<b>' + esc(q.title) + '</b>' : '') + (q.subtitle ? '<small><i></i>' + esc(q.subtitle) + '</small>' : '') + '</div>' : '') +
+        items.map(it => {
+          const ext = /^https?:/i.test(it.href);
+          return '<a class="dock__item" href="' + esc(it.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '>' +
+            '<span class="dock__ico"' + (it.color ? ' style="background:' + esc(it.color) + ';color:#fff"' : '') + '>' + icon(it.icon || 'message') + '</span>' +
+            '<span class="dock__txt"><b>' + esc(it.label) + '</b>' + (it.desc ? '<small>' + esc(it.desc) + '</small>' : '') + '</span></a>';
+        }).join('') +
+      '</div>';
+    const tab = $('.dock__tab', box);
+    let hover = false, timer = null;
+    const set = open => { box.classList.toggle('open', open); tab.setAttribute('aria-expanded', String(open)); tab.setAttribute('aria-label', open ? 'Thu gọn hỗ trợ nhanh' : 'Mở hỗ trợ nhanh'); };
+    tab.onclick = () => { clearTimeout(timer); set(!box.classList.contains('open')); };
+    box.addEventListener('mouseenter', () => { hover = true; clearTimeout(timer); });
+    box.addEventListener('mouseleave', () => { hover = false; if (box.dataset.peek) { timer = setTimeout(() => { set(false); delete box.dataset.peek; }, 600); } });
+    document.addEventListener('click', e => { if (!e.composedPath().includes(box)) set(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
+    // Tự hiện vài giây khi tải trang rồi lùi vào
+    dockPeek = () => {
+      if (!q.autoPeek) return;
+      box.dataset.peek = '1'; set(true);
+      timer = setTimeout(() => { if (!hover) { set(false); delete box.dataset.peek; } }, Math.max(1, Number(q.peekSeconds) || 2) * 1000);
+    };
   }
 
   function renderAnnounce() {
@@ -826,9 +851,9 @@
   /* ---------------- Preloader, màn chào & tự phát nhạc ---------------- */
   function initIntro(player) {
     const pre = $('#preloader'), gate = $('#gate'), M = D.music;
-    const hidePre = () => { pre.classList.add('done'); setTimeout(() => pre.remove(), 800); };
+    const hidePre = () => { pre.classList.add('done'); setTimeout(() => pre.remove(), 800); if (!T.welcomeGate) setTimeout(dockPeek, 700); };
     if (T.preloader) { const t0 = performance.now(); const go = () => setTimeout(hidePre, Math.max(0, 900 - (performance.now() - t0))); document.readyState === 'complete' ? go() : window.addEventListener('load', go); }
-    else pre.remove();
+    else { pre.remove(); if (!T.welcomeGate) setTimeout(dockPeek, 900); }
 
     if (T.welcomeGate) {
       gate.hidden = false; document.body.classList.add('no-scroll');
@@ -838,6 +863,7 @@
       const leave = withMusic => {
         gate.classList.add('leave'); document.body.classList.remove('no-scroll');
         setTimeout(() => gate.remove(), 800);
+        setTimeout(dockPeek, 900);
         if (withMusic && player) player.play(0);
       };
       $('#gate-enter').onclick = () => leave(true);
@@ -862,7 +888,7 @@
   renderMain();
   renderFooter();
   applyTheme();
-  renderFab();
+  renderDock();
   Store.trackVisit();
   initReveal();
   initTyping();
