@@ -661,7 +661,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 0; bo
   .hero__visual { display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 10px; min-height: 0; padding: 36px 0 8px; transform: none; }
   .profile-card { flex: 0 0 100%; max-width: 300px; margin-bottom: 10px; }
   .hero__visual .orbit { left: 50%; top: 200px; translate: -50% -50%; }
-  .float-badge { position: static; font-size: .78rem; padding: 5px 12px 5px 5px; }
+  .float-badge { position: static; font-size: .78rem; padding: 5px 12px 5px 5px; animation: none; translate: none; } /* điện thoại: nhãn đứng yên */
   .float-badge__ico { width: 24px; height: 24px; }
   .fb-7, .fb-8 { display: none; }
   .stats { gap: 12px; }
