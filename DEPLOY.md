@@ -140,6 +140,19 @@ Từ giờ, mỗi khi khách gửi form liên hệ, bạn nhận tin dạng:
 
 ---
 
+## Làm mới bản xem trước khi gửi link
+
+Tiêu đề, mô tả và ảnh hiện ra khi gửi link website được chỉnh ở:
+**Quản trị → Nội dung chung → Khi gửi link website**. Ảnh nên là ảnh ngang **1200 × 630 px**.
+
+Facebook, Messenger và Zalo **lưu tạm** bản xem trước cũ, có khi tới vài ngày. Sau khi đổi, bạn làm mới như sau:
+
+- **Facebook / Messenger:** mở <https://developers.facebook.com/tools/debug/> → dán `https://lequangdao.store` → bấm **Debug** → bấm **Scrape Again** (Thu thập lại).
+- **Zalo:** mở <https://developers.zalo.me/tools/debug-sharing> → dán link → bấm **Debug** → **Lấy thông tin mới**.
+- **Mẹo nhanh để thử ngay:** gửi link có thêm đuôi, ví dụ `https://lequangdao.store/?v=2`. Ứng dụng coi đây là link mới nên đọc lại thông tin.
+
+---
+
 ## Cập nhật website khi có code mới
 
 Khi mình gửi các file mới, cách cập nhật tuỳ theo cách bạn đã tải code lên ở Bước 3:

@@ -96,7 +96,7 @@
     document.body.dataset.card = T.cardStyle;
     document.body.classList.toggle('has-glow', !!(T.cursorGlow && finePointer && !reduceMotion));
     setMode(currentMode());
-    document.title = D.general.siteName + (D.general.tagline ? ' — ' + D.general.tagline : '');
+    document.title = D.general.shareTitle || (D.general.siteName + (D.general.tagline ? ' — ' + D.general.tagline : ''));
     const md = $('meta[name="description"]'); if (md) md.content = D.general.seoDescription || '';
   }
 

@@ -139,6 +139,8 @@
       seoDescription: 'NOVA BOOST – dịch vụ cày thuê Genshin Impact, Honkai: Star Rail, Wuthering Waves, Zenless Zone Zero, Arknights: Endfield, Neverness to Everness. Cày tay 100%, bảo mật, giá tốt.',
       footerText: 'Game thủ phục vụ game thủ. Giữ nhịp tài khoản của bạn khi bận học, bận làm — an toàn, nhanh chóng, giá hợp lý.',
       copyright: '© {year} NOVA BOOST. Mọi quyền được bảo lưu.',
+      shareTitle: '',        // để trống = Tên website — Khẩu hiệu
+      shareImage: '',        // ảnh hiện khi gửi link (Facebook, Zalo, Messenger)
       showAdminLink: true,
       games: GAMES.slice(),
       announcement: {
@@ -477,6 +479,12 @@
         if (Array.isArray(payload.messages)) writeJSON(KEYS.messages, payload.messages);
       }
       DATA = merge(DEFAULT_DATA, d);
+    },
+
+    /* Ảnh (ảnh chia sẻ link) — chỉ khi chạy trên máy chủ */
+    async uploadImage(file) {
+      if (MODE !== 'server') throw new Error('Tải ảnh lên chỉ dùng được khi website chạy trên VPS — hãy dán link ảnh');
+      return (await api('POST', 'api/image', undefined, { body: file, type: file.type, name: file.name })).url;
     },
 
     /* Nhạc tải lên: máy chủ → thư mục uploads/music; xem trước → IndexedDB */

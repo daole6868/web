@@ -25,6 +25,7 @@ const ROOT = path.resolve(__dirname, '..');
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(ROOT, 'data'));
 const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || path.join(ROOT, 'uploads'));
 const MUSIC_DIR = path.join(UPLOAD_DIR, 'music');
+const IMAGE_DIR = path.join(UPLOAD_DIR, 'images');
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 const MAX_JSON = 2 * 1024 * 1024;           // 2 MB cho dữ liệu nội dung
@@ -353,6 +354,42 @@ route('DELETE', /^\/api\/music\/([a-f0-9]{16}\.(?:mp3|m4a|aac|ogg|wav|webm|flac)
   await fsp.rm(path.join(MUSIC_DIR, name), { force: true }); ok(res);
 });
 
+// Tải ảnh lên (ảnh chia sẻ link, logo…)
+const IMAGE_EXT = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif' };
+route('POST', /^\/api\/image$/, { auth: true }, async (req, res) => {
+  const type = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  const ext = IMAGE_EXT[type];
+  if (!ext) return fail(res, 415, 'Chỉ nhận ảnh PNG, JPG, WEBP hoặc GIF');
+  const buf = await readBody(req, 5 * 1024 * 1024);
+  const name = crypto.randomBytes(8).toString('hex') + ext;
+  await fsp.writeFile(path.join(IMAGE_DIR, name), buf);
+  ok(res, { ok: true, url: 'uploads/images/' + name });
+});
+
+/* ---------------- Thẻ chia sẻ link (Facebook, Zalo, Messenger, Google) ----------------
+   Các ứng dụng này không chạy JavaScript khi đọc link, nên máy chủ chèn sẵn tiêu đề,
+   mô tả và ảnh lấy từ nội dung admin vào index.html. */
+const htmlEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function renderIndex(html, req) {
+  const g = (readJSON(FILES.site, {}) || {}).general || {};
+  const proto = String(req.headers['x-forwarded-proto'] || 'http').split(',')[0].trim();
+  const origin = proto + '://' + String(req.headers.host || 'localhost').replace(/[^\w.:-]/g, '');
+  const htmlTitle = (/<title>([\s\S]*?)<\/title>/.exec(html) || [])[1] || '';
+  const htmlDesc = (/<meta name="description" content="([^"]*)">/.exec(html) || [])[1] || '';
+  const title = g.shareTitle || [g.siteName, g.tagline].filter(Boolean).join(' — ');
+  const desc = g.seoDescription || g.tagline || '';
+  let img = g.shareImage || '';
+  if (img && !/^https?:\/\//i.test(img)) img = origin + '/' + img.replace(/^\/+/, '');
+  if (title) html = html.replace(/<title>[\s\S]*?<\/title>/, '<title>' + htmlEsc(title) + '</title>');
+  if (desc) html = html.replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="' + htmlEsc(desc) + '">');
+  const tags = [
+    ['og:type', 'website'], ['og:locale', 'vi_VN'], ['og:site_name', g.siteName], ['og:url', origin + '/'],
+    ['og:title', title || htmlTitle], ['og:description', desc || htmlDesc], ['og:image', img],
+    ['twitter:card', img ? 'summary_large_image' : 'summary'], ['twitter:title', title || htmlTitle], ['twitter:description', desc || htmlDesc], ['twitter:image', img]
+  ].filter(t => t[1]).map(t => '  <meta ' + (t[0].startsWith('twitter:') ? 'name' : 'property') + '="' + t[0] + '" content="' + (t[0].endsWith('title') && !title || t[0].endsWith('description') && !desc ? t[1] : htmlEsc(t[1])) + '">').join('\n');
+  return html.replace('</head>', tags + '\n</head>');
+}
+
 /* ---------------- Phục vụ file tĩnh ---------------- */
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
@@ -376,6 +413,15 @@ async function serveStatic(req, res, pathname) {
   let st;
   try { st = await fsp.stat(file); } catch (e) { return send(res, 404, 'Không tìm thấy'); }
   if (!st.isFile()) return send(res, 404, 'Không tìm thấy');
+
+  if (pathname === '/index.html') {
+    const html = renderIndex(await fsp.readFile(file, 'utf8'), req);
+    const tag = '"' + sha(html).slice(0, 20) + '"';
+    const h = { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache', 'ETag': tag };
+    if (req.headers['if-none-match'] === tag) { res.writeHead(304, h); return res.end(); }
+    res.writeHead(200, Object.assign(h, { 'Content-Length': Buffer.byteLength(html) }));
+    return res.end(req.method === 'HEAD' ? undefined : html);
+  }
 
   const ext = path.extname(file).toLowerCase();
   const etag = 'W/"' + st.size.toString(16) + '-' + Math.floor(st.mtimeMs).toString(16) + '"';
@@ -438,6 +484,7 @@ const server = http.createServer(async (req, res) => {
 async function main() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(MUSIC_DIR, { recursive: true });
+  fs.mkdirSync(IMAGE_DIR, { recursive: true });
 
   const [cmd, arg] = process.argv.slice(2);
   if (cmd === 'set-password') {

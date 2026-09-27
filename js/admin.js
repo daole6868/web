@@ -310,11 +310,19 @@
           { key: 'general.siteName', label: 'Tên website', type: 'text' },
           { key: 'general.logoText', label: 'Chữ trên logo', type: 'text', hint: 'Chữ cái đầu sẽ hiển thị trong ô logo' },
           { key: 'general.tagline', label: 'Khẩu hiệu (tagline)', type: 'text', full: true },
-          { key: 'general.seoDescription', label: 'Mô tả SEO (hiển thị trên Google)', type: 'textarea', rows: 2 },
           { key: 'general.footerText', label: 'Giới thiệu ngắn ở chân trang', type: 'textarea', rows: 2 },
           { key: 'general.copyright', label: 'Dòng bản quyền cuối trang', type: 'text', full: true, hint: 'Viết {year} để tự hiện năm hiện tại. VD: © {year} NOVA BOOST. Mọi quyền được bảo lưu.' },
           { key: 'general.showAdminLink', label: 'Hiện liên kết “Quản trị” ở chân trang', type: 'toggle' }
         ], draft)) +
+        panel('Khi gửi link website (Facebook, Zalo, Messenger, Google)', 'send', 'Tiêu đề, mô tả và ảnh hiện ra trong khung xem trước khi ai đó gửi link trang của bạn.',
+          '<div class="grid-2" style="align-items:start"><div>' + form([
+            { key: 'general.shareTitle', label: 'Tiêu đề', type: 'text', full: true, placeholder: (draft.general.siteName || '') + ' — ' + (draft.general.tagline || ''), hint: 'Để trống = Tên website — Khẩu hiệu' },
+            { key: 'general.seoDescription', label: 'Mô tả', type: 'textarea', rows: 3, hint: 'Nên dài 1–2 câu (khoảng 150 ký tự).' },
+            { key: 'general.shareImage', label: 'Ảnh xem trước', type: 'text', full: true, placeholder: 'https://… hoặc bấm “Tải ảnh lên”', hint: 'Khuyên dùng ảnh ngang 1200 × 630 px, dưới 5 MB.' }
+          ], draft) +
+          '<div class="toolbar" style="margin-top:12px"><label class="btn btn--ghost btn--sm file-btn">' + icon('upload') + 'Tải ảnh lên<input type="file" id="share-img" accept="image/png,image/jpeg,image/webp,image/gif"></label>' +
+          '<button class="btn btn--ghost btn--sm" id="share-img-clear" type="button">' + icon('trash') + 'Bỏ ảnh</button></div></div>' +
+          '<div><div class="share-card" id="share-preview"></div><p class="field__hint" style="margin-top:10px">Facebook/Zalo lưu tạm bản xem trước cũ. Sau khi đổi, xem mục <b>Làm mới bản xem trước</b> trong DEPLOY.md.</p></div></div>') +
         panel('Thanh thông báo', 'bell', 'Dải thông báo nổi bật ở đầu trang (khuyến mãi, tin mới…)', form([
           { key: 'general.announcement.enabled', label: 'Bật thanh thông báo', type: 'toggle' },
           { key: 'general.announcement.text', label: 'Nội dung', type: 'text', full: true },
@@ -345,7 +353,27 @@
         ], draft)) +
         panel('Số liệu ấn tượng', 'chart', 'Hiển thị dạng bộ đếm chạy số', collection(CFG.stats));
       },
-      after() { bindCollection(CFG.stats, () => go('general', true)); }
+      after() {
+        bindCollection(CFG.stats, () => go('general', true));
+        this.onChange();
+        $('#share-img').onchange = async e => {
+          const f = e.target.files[0]; if (!f) return;
+          if (f.size > 5 * 1024 * 1024) return toast('Ảnh quá lớn (tối đa 5 MB)', 'err');
+          try {
+            toast('Đang tải ảnh lên…');
+            draft.general.shareImage = await Store.uploadImage(f);
+            $('[data-path="general.shareImage"]').value = draft.general.shareImage;
+            markDirty(); this.onChange(); toast('Đã tải ảnh — bấm Lưu để áp dụng', 'ok');
+          } catch (err) { toast(err.message, 'err'); }
+        };
+        $('#share-img-clear').onclick = () => { draft.general.shareImage = ''; $('[data-path="general.shareImage"]').value = ''; markDirty(); this.onChange(); };
+      },
+      onChange() {
+        const g = draft.general, box = $('#share-preview'); if (!box) return;
+        const title = g.shareTitle || [g.siteName, g.tagline].filter(Boolean).join(' — ');
+        box.innerHTML = (g.shareImage ? '<div class="share-card__img" style="background-image:url(\'' + esc(g.shareImage).replace(/'/g, '%27') + '\')"></div>' : '<div class="share-card__img share-card__img--empty">' + icon('image') + '<span>Chưa có ảnh</span></div>') +
+          '<div class="share-card__body"><small>' + esc(location.host || 'tenmien.com') + '</small><b>' + esc(title) + '</b><span>' + esc(g.seoDescription || '') + '</span></div>';
+      }
     },
 
     theme: {
