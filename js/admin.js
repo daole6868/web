@@ -106,6 +106,7 @@
           '<span class="switch"><input type="checkbox" ' + a + (val ? ' checked' : '') + '><span></span></span></label>';
       case 'icon':
         input = '<input type="hidden" ' + a + ' value="' + esc(val) + '"><div class="icon-picker">' +
+          (f.allowAuto ? '<button type="button" data-pick="" class="icon-picker__auto' + (!val ? ' active' : '') + '" title="Tự chọn theo nội dung">Tự động</button>' : '') +
           SERVICE_ICONS.map(n => '<button type="button" data-pick="' + n + '" class="' + (n === val ? 'active' : '') + '" title="' + n + '">' + icon(n) + '</button>').join('') + '</div>'; break;
       default:
         input = '<input id="' + id + '" type="text" ' + a + ' value="' + esc(val) + '" placeholder="' + esc(f.placeholder || '') + '">';
@@ -341,7 +342,6 @@
           { key: 'general.hero.cardName', label: 'Tên trên thẻ hồ sơ', type: 'text' },
           { key: 'general.hero.cardRole', label: 'Chức danh trên thẻ', type: 'text' },
           { key: 'general.hero.cardInitials', label: 'Chữ viết tắt trong vòng tròn', type: 'text' },
-          { key: 'general.hero.floatBadges', label: 'Nhãn bay quanh thẻ (tối đa 3)', type: 'lines', rows: 3 },
           { key: 'general.games', label: 'Các game nhận cày (dải chữ chạy dưới phần đầu trang)', type: 'lines', rows: 6, hint: 'Mỗi dòng một game — để trống nếu không muốn hiện dải chữ chạy' }
         ], draft)) +
         panel('Mục giới thiệu', 'user', '', form([
@@ -351,10 +351,12 @@
           { key: 'general.about.experienceYears', label: 'Số năm kinh nghiệm', type: 'text' },
           { key: 'general.about.experienceLabel', label: 'Nhãn', type: 'text' }
         ], draft)) +
+        panel('Nhãn bay quanh thẻ hồ sơ', 'sparkles', 'Tối đa 8 nhãn (điện thoại hiện 4 nhãn đầu). Không chọn biểu tượng → hệ thống tự chọn theo nội dung.', collection(CFG.badges)) +
         panel('Số liệu ấn tượng', 'chart', 'Hiển thị dạng bộ đếm chạy số', collection(CFG.stats));
       },
       after() {
         bindCollection(CFG.stats, () => go('general', true));
+        bindCollection(CFG.badges, () => go('general', true));
         this.onChange();
         $('#share-img').onchange = async e => {
           const f = e.target.files[0]; if (!f) return;
@@ -696,6 +698,17 @@
 
   /* ---------------- Cấu hình các danh sách ---------------- */
   const CFG = {
+    badges: {
+      path: 'general.hero.floatBadges', name: 'nhãn', make: () => ({ icon: '', text: '' }),
+      title: it => it.text || '(trống)', sub: it => it.icon ? 'Biểu tượng: ' + it.icon : 'Biểu tượng: tự động (' + Store.guessIcon(it.text) + ')',
+      iconOf: it => icon(it.icon || Store.guessIcon(it.text)),
+      fields: [{ key: 'text', label: 'Nội dung nhãn', type: 'text', full: true, required: true, placeholder: 'VD: Phản hồi trong 5 phút', hint: 'Ngắn gọn khoảng 2–6 chữ' },
+        { key: 'icon', label: 'Biểu tượng', type: 'icon', allowAuto: true }],
+      onAdd(rerender) {
+        if (draft.general.hero.floatBadges.length >= 8) return toast('Tối đa 8 nhãn — hãy xoá bớt trước khi thêm', 'err');
+        editItem(CFG.badges, -1, rerender);
+      }
+    },
     stats: {
       path: 'general.stats', name: 'số liệu', make: () => ({ value: 100, suffix: '+', label: 'Số liệu mới' }),
       title: it => it.value + (it.suffix || '') + ' — ' + it.label, iconOf: () => icon('chart'),

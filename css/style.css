@@ -294,13 +294,26 @@ body.has-glow #cursor-glow { opacity: 1; }
 .profile-card__stats b { display: block; font-size: 1.15rem; }
 .profile-card__stats span { font-size: .72rem; color: var(--muted); }
 .float-badge {
-  position: absolute; padding: 10px 16px; border-radius: var(--radius); font-size: .85rem; font-weight: 600; white-space: nowrap;
-  background: var(--glass); border: 1px solid var(--border); backdrop-filter: blur(14px); box-shadow: var(--shadow);
-  animation: float 5s ease-in-out infinite;
+  position: absolute; z-index: 2; display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px 7px 7px;
+  border-radius: 99px; font-size: .84rem; font-weight: 600; white-space: nowrap;
+  background: var(--glass); border: 1px solid var(--border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow);
+  animation: float 5s ease-in-out infinite; transition: transform .3s var(--ease), border-color .3s;
 }
-.fb-1 { top: 10%; left: -6%; animation-delay: -1s; }
-.fb-2 { top: 20%; right: -8%; animation-delay: -2.5s; }
-.fb-3 { bottom: 6%; left: 0; animation-delay: -4s; }
+.float-badge:hover { transform: scale(1.06); border-color: color-mix(in srgb, var(--primary) 50%, transparent); }
+.float-badge__ico {
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center;
+  background: var(--grad); color: var(--on-primary); box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent);
+}
+.float-badge__ico .ico { width: 15px; height: 15px; }
+/* 8 vị trí quanh thẻ hồ sơ, mỗi nhãn nhún lệch nhịp nhau */
+.fb-1 { top: 12%; left: -8%; animation-delay: -1s; }
+.fb-2 { top: 24%; right: -10%; animation-delay: -2.5s; }
+.fb-3 { top: 93%; left: -8%; animation-delay: -4s; }
+.fb-4 { top: 91%; right: -12%; animation-delay: -1.8s; }
+.fb-5 { top: -3%; right: 4%; animation-delay: -3.2s; }
+.fb-6 { top: 46%; left: -15%; animation-delay: -0.6s; }
+.fb-7 { top: -6%; left: 8%; animation-delay: -2.1s; }
+.fb-8 { top: 42%; right: -17%; animation-delay: -3.7s; }
 @keyframes float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
 
 .scroll-down { position: absolute; bottom: 30px; left: 50%; translate: -50% 0; width: 26px; height: 42px; border: 2px solid var(--muted); border-radius: 14px; opacity: .7; }
@@ -607,6 +620,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 0; bo
 }
 
 /* ---------- 22. Responsive ---------- */
+@media (max-width: 1360px) {
+  .fb-2 { right: -3%; } .fb-4 { right: 8%; } .fb-5 { right: 0; } .fb-8 { right: -4%; }
+}
 @media (max-width: 1080px) {
   .nav { display: none; }
   .menu-btn { display: inline-grid; }
@@ -641,7 +657,13 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 0; bo
   .services__grid, .pricing, .process, .checklist, .form__grid { grid-template-columns: 1fr; }
   .hero__visual { min-height: 360px; transform: scale(.85); }
   .orbit { width: 340px; height: 340px; }
-  .fb-1 { left: 0; } .fb-2 { right: 0; }
+  /* Điện thoại: nhãn xếp thành hàng gọn gàng bên dưới thẻ thay vì bay đè lên thẻ */
+  .hero__visual { display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 10px; min-height: 0; padding: 36px 0 8px; transform: none; }
+  .profile-card { flex: 0 0 100%; max-width: 300px; margin-bottom: 10px; }
+  .hero__visual .orbit { left: 50%; top: 200px; translate: -50% -50%; }
+  .float-badge { position: static; font-size: .78rem; padding: 5px 12px 5px 5px; }
+  .float-badge__ico { width: 24px; height: 24px; }
+  .fb-7, .fb-8 { display: none; }
   .stats { gap: 12px; }
   .stat b { font-size: 1.9rem; }
   .review__card { padding: 32px 22px; }

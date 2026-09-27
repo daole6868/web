@@ -161,7 +161,14 @@
         cardName: 'NOVA BOOST',
         cardRole: 'Cày thuê game gacha',
         cardInitials: 'NB',
-        floatBadges: ['🛡️ 100% cày tay, không tool', '⚡ Phản hồi trong 5 phút', '⭐ 1.500+ đơn hoàn thành']
+        floatBadges: [
+          { icon: 'shield', text: '100% cày tay, không tool' },
+          { icon: 'zap', text: 'Phản hồi trong 5 phút' },
+          { icon: 'trophy', text: '1.500+ đơn hoàn thành' },
+          { icon: 'star', text: '4.9/5 từ 800+ khách' },
+          { icon: 'gamepad', text: 'Nhận mọi server' },
+          { icon: 'clock', text: 'Hỗ trợ 24/7' }
+        ]
       },
       about: {
         text: 'NOVA BOOST là đội ngũ game thủ lâu năm, chơi và hiểu rõ từng tựa game gacha. Chúng tôi giúp bạn giữ nhịp tài khoản khi bận rộn: không bỏ lỡ sự kiện, không phí thể lực, endgame luôn full sao.',
@@ -290,6 +297,41 @@
     }
   };
 
+  /* ---------- Tự chọn icon theo nội dung chữ (khi không chọn icon) ---------- */
+  const ICON_RULES = [
+    [/endgame|abyss|la hoàn|tháp|boss|full sao|36/, 'swords'],
+    [/tool|hack|cày tay|an toàn|bảo mật|uy tín|bảo hành|cam kết/, 'shield'],
+    [/giá|rẻ|giảm|%|ưu đãi|khuyến mãi|sale|tiết kiệm/, 'tag'],
+    [/phút|nhanh|phản hồi|tốc độ|ngay|liền/, 'zap'],
+    [/đơn|hoàn thành|dự án|thành tích/, 'trophy'],
+    [/sao|đánh giá|review|★|\/5/, 'star'],
+    [/năm|kinh nghiệm/, 'award'],
+    [/24\/7|hỗ trợ|online|trực/, 'clock'],
+    [/khách|người|thành viên|cộng đồng/, 'users'],
+    [/server|game|acc|tài khoản|nhân vật/, 'gamepad'],
+    [/quà|tặng|free|miễn phí/, 'gift'],
+    [/vip|cao cấp|pro/, 'crown'],
+    [/thanh toán|momo|chuyển khoản|ngân hàng/, 'cart'],
+    [/bản đồ|khám phá/, 'compass']
+  ];
+  function guessIcon(text) {
+    const t = String(text || '').toLowerCase();
+    const hit = ICON_RULES.find(r => r[0].test(t));
+    return hit ? hit[1] : 'sparkles';
+  }
+  // Bỏ emoji ở đầu (dữ liệu cũ dạng "⚡ Phản hồi…")
+  const stripEmoji = t => String(t || '').replace(/^[\p{Extended_Pictographic}\p{Emoji_Presentation}\u{FE0F}\u{200D}\u{20E3}\s]+/u, '').trim();
+  function normBadge(b) {
+    if (b && typeof b === 'object') return { icon: b.icon || '', text: String(b.text || '') };
+    return { icon: '', text: stripEmoji(b) };
+  }
+  // Chuẩn hoá dữ liệu cũ về định dạng mới
+  function fixData(d) {
+    const h = d && d.general && d.general.hero;
+    if (h) h.floatBadges = (Array.isArray(h.floatBadges) ? h.floatBadges : []).map(normBadge).filter(b => b.text);
+    return d;
+  }
+
   /* ---------- Tiện ích ---------- */
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
@@ -359,7 +401,7 @@
     if (!res.ok || j.ok === false) { const err = new Error(j.error || ('Lỗi máy chủ (' + res.status + ')')); err.status = res.status; throw err; }
     return j;
   }
-  const localData = () => merge(DEFAULT_DATA, readJSON(KEYS.data, {}) || {});
+  const localData = () => fixData(merge(DEFAULT_DATA, readJSON(KEYS.data, {}) || {}));
   const sessionFlag = {
     get() { try { return sessionStorage.getItem(KEYS.session) === '1' || localStorage.getItem(KEYS.session) === '1'; } catch (e) { return false; } },
     set(remember) { try { (remember ? localStorage : sessionStorage).setItem(KEYS.session, '1'); } catch (e) { /* noop */ } },
@@ -379,7 +421,7 @@
       if (location.protocol === 'http:' || location.protocol === 'https:') {
         try {
           const j = await api('GET', 'api/site');
-          if (j.server) { MODE = 'server'; DATA = merge(DEFAULT_DATA, j.data || {}); return MODE; }
+          if (j.server) { MODE = 'server'; DATA = fixData(merge(DEFAULT_DATA, j.data || {})); return MODE; }
         } catch (e) { /* không có máy chủ → chế độ xem trước */ }
       }
       MODE = 'local'; DATA = localData(); return MODE;
@@ -478,7 +520,7 @@
         d.admin = DATA.admin; writeJSON(KEYS.data, d);
         if (Array.isArray(payload.messages)) writeJSON(KEYS.messages, payload.messages);
       }
-      DATA = merge(DEFAULT_DATA, d);
+      DATA = fixData(merge(DEFAULT_DATA, d));
     },
 
     /* Ảnh (ảnh chia sẻ link) — chỉ khi chạy trên máy chủ */
@@ -504,6 +546,7 @@
     hash,
     uid,
     onColor,
+    guessIcon,
     clone
   };
 

@@ -111,7 +111,8 @@
 
   R.hero = () => {
     const h = D.general.hero, c = D.contact;
-    const floats = (h.floatBadges || []).slice(0, 3).map((b, i) => '<div class="float-badge fb-' + (i + 1) + '">' + esc(b) + '</div>').join('');
+    const floats = (h.floatBadges || []).slice(0, 8).map((b, i) =>
+      '<div class="float-badge fb-' + (i + 1) + '"><span class="float-badge__ico">' + icon(b.icon || Store.guessIcon(b.text)) + '</span>' + esc(b.text) + '</div>').join('');
     const st = D.general.stats || [];
     const games = D.general.games || [];
     const loop = games.map(g => '<span>' + icon('gamepad') + esc(g) + '</span><i>✦</i>').join('');
