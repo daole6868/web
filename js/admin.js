@@ -841,7 +841,6 @@
   let me = { loggedIn: false, mustChange: false };
   try { me = await Store.me(); } catch (e) { toast('Không kết nối được máy chủ', 'err'); }
   mustChange = me.mustChange;
-  if (mustChange) $('#login-hint').innerHTML = 'Mật khẩu mặc định: <code>admin123</code>';
   $('#login-form').onsubmit = async e => {
     e.preventDefault();
     const btn = $('#login-form button[type="submit"]'); btn.disabled = true;
