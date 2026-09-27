@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Quản trị website</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%237c5cff'/%3E%3Cpath d='M22 30v-6a10 10 0 0 1 20 0v6M18 30h28v18H18z' stroke='white' stroke-width='5' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="bg-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <!-- Đăng nhập -->
+  <div class="login" id="login">
+    <form class="login__card card" id="login-form" autocomplete="off">
+      <div class="login__logo" id="login-logo"></div>
+      <h1>Trang quản trị</h1>
+      <p class="muted" id="login-site">Đăng nhập để quản lý nội dung website</p>
+      <div class="field">
+        <label for="login-pw">Mật khẩu</label>
+        <div class="pw-wrap">
+          <input type="password" id="login-pw" placeholder="Nhập mật khẩu" autofocus>
+          <button type="button" class="pw-eye" id="pw-eye" aria-label="Hiện mật khẩu"></button>
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="login-remember"> Ghi nhớ đăng nhập trên máy này</label>
+      <button class="btn btn--primary btn--block btn--lg" type="submit">Đăng nhập</button>
+      <p class="login__hint" id="login-hint"></p>
+      <a class="login__back" href="index.html">← Quay lại trang chủ</a>
+    </form>
+  </div>
+
+  <!-- Ứng dụng quản trị -->
+  <div class="app" id="app" hidden>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__brand"><span class="logo__mark" id="brand-mark">N</span><div><b id="brand-name">Nova</b><small>Bảng điều khiển</small></div></div>
+      <nav class="sidebar__nav" id="side-nav"></nav>
+      <div class="sidebar__foot">
+        <a class="side-link" href="index.html" target="_blank" rel="noopener" id="view-site"></a>
+        <button class="side-link" id="logout"></button>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="icon-btn topbar__menu" id="side-toggle" aria-label="Menu"></button>
+        <div class="topbar__title"><h1 id="page-title">Tổng quan</h1><span id="page-desc" class="muted"></span></div>
+        <div class="topbar__actions">
+          <span class="dirty" id="dirty" hidden><i></i>Chưa lưu</span>
+          <button class="icon-btn" id="admin-theme" aria-label="Đổi giao diện"></button>
+          <button class="btn btn--ghost btn--sm" id="discard" hidden>Huỷ thay đổi</button>
+          <button class="btn btn--primary btn--sm" id="save"></button>
+        </div>
+      </header>
+      <main class="view" id="view"></main>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box" id="modal-box"></div>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
