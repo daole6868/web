@@ -148,6 +148,9 @@ web/
 │   ├── main.js       Dựng trang chính từ dữ liệu + toàn bộ hiệu ứng
 │   └── admin.js      Trang quản trị
 ├── music/            (tuỳ chọn) đặt file .mp3 của bạn ở đây
+├── server/server.js  Máy chủ Node.js (API nội dung, tin nhắn, Telegram, tải nhạc) — không cần thư viện
+├── deploy/           Script cài đặt VPS, cấu hình Nginx, systemd, cập nhật, đổi mật khẩu
+├── DEPLOY.md         Hướng dẫn đưa lên VPS
 ├── start-windows.bat Mở nhanh trên Windows
 ├── start-mac-linux.sh Mở nhanh trên macOS / Linux
 └── KE-HOACH.md       Tài liệu này

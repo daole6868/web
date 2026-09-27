@@ -287,7 +287,7 @@
       } else {
         let src = tr.url;
         this._remote = tr.type === 'url';
-        if (tr.type === 'upload') {
+        if (tr.type === 'upload' && !tr.url) { // bản xem trước: file nằm trong IndexedDB
           try {
             const blob = await AudioDB.get(tr.id);
             if (!blob) throw new Error('missing');

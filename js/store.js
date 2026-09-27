@@ -138,6 +138,7 @@
       tagline: 'Cày thuê game gacha uy tín – cày tay 100%',
       seoDescription: 'NOVA BOOST – dịch vụ cày thuê Genshin Impact, Honkai: Star Rail, Wuthering Waves, Zenless Zone Zero, Arknights: Endfield, Neverness to Everness. Cày tay 100%, bảo mật, giá tốt.',
       footerText: 'Game thủ phục vụ game thủ. Giữ nhịp tài khoản của bạn khi bận học, bận làm — an toàn, nhanh chóng, giá hợp lý.',
+      copyright: '© {year} NOVA BOOST. Mọi quyền được bảo lưu.',
       showAdminLink: true,
       games: GAMES.slice(),
       announcement: {
@@ -338,40 +339,160 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  /* ---------- Store ---------- */
+  /* ---------- Store ----------
+     Hai chế độ, tự nhận biết khi khởi động (Store.init):
+     - "server": chạy cùng server/server.js trên VPS → mọi dữ liệu lưu trên máy chủ,
+       mọi khách đều thấy nội dung admin đã chỉnh, tin nhắn gửi về admin + Telegram.
+     - "local" : mở file trực tiếp trên máy (xem trước) → lưu trong trình duyệt như cũ. */
+  let MODE = 'local', DATA = null;
+
+  async function api(method, url, body, raw) {
+    const opt = { method, credentials: 'same-origin', headers: { 'X-Requested-With': 'nova' } };
+    if (raw) { opt.body = raw.body; opt.headers['Content-Type'] = raw.type || 'application/octet-stream'; opt.headers['X-Filename'] = encodeURIComponent(raw.name || ''); }
+    else if (body !== undefined) { opt.body = JSON.stringify(body); opt.headers['Content-Type'] = 'application/json'; }
+    let res;
+    try { res = await fetch(url, opt); } catch (e) { throw new Error('Không kết nối được máy chủ'); }
+    let j = {};
+    try { j = await res.json(); } catch (e) { /* không phải JSON */ }
+    if (!res.ok || j.ok === false) { const err = new Error(j.error || ('Lỗi máy chủ (' + res.status + ')')); err.status = res.status; throw err; }
+    return j;
+  }
+  const localData = () => merge(DEFAULT_DATA, readJSON(KEYS.data, {}) || {});
+  const sessionFlag = {
+    get() { try { return sessionStorage.getItem(KEYS.session) === '1' || localStorage.getItem(KEYS.session) === '1'; } catch (e) { return false; } },
+    set(remember) { try { (remember ? localStorage : sessionStorage).setItem(KEYS.session, '1'); } catch (e) { /* noop */ } },
+    clear() { try { sessionStorage.removeItem(KEYS.session); localStorage.removeItem(KEYS.session); } catch (e) { /* noop */ } }
+  };
+  function checkLocalPassword(pw) {
+    const h = DATA && DATA.admin && DATA.admin.passwordHash;
+    return h ? hash(pw) === h : pw === 'admin123';
+  }
+
   const Store = {
     KEYS,
     defaults: () => clone(DEFAULT_DATA),
+    isServer: () => MODE === 'server',
 
-    load() { return merge(DEFAULT_DATA, readJSON(KEYS.data, {}) || {}); },
-    save(data) { return writeJSON(KEYS.data, data); },
-    reset() { localStorage.removeItem(KEYS.data); },
-
-    messages() { return readJSON(KEYS.messages, []); },
-    saveMessages(list) { writeJSON(KEYS.messages, list); },
-    addMessage(msg) {
-      const list = Store.messages();
-      list.unshift(Object.assign({ id: uid('m'), date: new Date().toISOString(), read: false }, msg));
-      Store.saveMessages(list);
+    async init() {
+      if (location.protocol === 'http:' || location.protocol === 'https:') {
+        try {
+          const j = await api('GET', 'api/site');
+          if (j.server) { MODE = 'server'; DATA = merge(DEFAULT_DATA, j.data || {}); return MODE; }
+        } catch (e) { /* không có máy chủ → chế độ xem trước */ }
+      }
+      MODE = 'local'; DATA = localData(); return MODE;
+    },
+    load() { if (!DATA) DATA = localData(); return clone(DATA); },
+    async save(data) {
+      if (MODE === 'server') { const d = clone(data); delete d.admin; await api('PUT', 'api/site', d); }
+      else if (!writeJSON(KEYS.data, data)) throw new Error('Bộ nhớ trình duyệt đầy');
+      DATA = clone(data);
+    },
+    async reset() {
+      const keepAdmin = DATA && DATA.admin;
+      if (MODE === 'server') await api('DELETE', 'api/site');
+      else localStorage.removeItem(KEYS.data);
+      DATA = merge(DEFAULT_DATA, {});
+      if (MODE === 'local' && keepAdmin) { DATA.admin = keepAdmin; writeJSON(KEYS.data, DATA); }
     },
 
-    stats() { return readJSON(KEYS.stats, { total: 0, days: {} }); },
+    /* Tin nhắn */
+    async messages() { return MODE === 'server' ? (await api('GET', 'api/messages')).messages : readJSON(KEYS.messages, []); },
+    async addMessage(msg) {
+      if (MODE === 'server') return api('POST', 'api/messages', msg);
+      const list = readJSON(KEYS.messages, []);
+      list.unshift(Object.assign({ id: uid('m'), date: new Date().toISOString(), read: false }, msg));
+      writeJSON(KEYS.messages, list);
+    },
+    async setRead(id, read) {
+      if (MODE === 'server') return api('POST', 'api/messages/' + encodeURIComponent(id) + '/read', { read });
+      const list = readJSON(KEYS.messages, []); const m = list.find(x => x.id === id); if (m) m.read = read; writeJSON(KEYS.messages, list);
+    },
+    async readAll() {
+      if (MODE === 'server') return api('POST', 'api/messages/read-all', {});
+      writeJSON(KEYS.messages, readJSON(KEYS.messages, []).map(m => Object.assign(m, { read: true })));
+    },
+    async deleteMessage(id) {
+      if (MODE === 'server') return api('DELETE', 'api/messages/' + encodeURIComponent(id));
+      writeJSON(KEYS.messages, readJSON(KEYS.messages, []).filter(m => m.id !== id));
+    },
+    async clearMessages() { if (MODE === 'server') return api('DELETE', 'api/messages'); writeJSON(KEYS.messages, []); },
+
+    /* Thống kê */
+    async stats() { return MODE === 'server' ? (await api('GET', 'api/stats')).stats : readJSON(KEYS.stats, { total: 0, days: {} }); },
+    async clearStats() { if (MODE === 'server') return api('DELETE', 'api/stats'); localStorage.removeItem(KEYS.stats); },
     trackVisit() {
       try {
         if (sessionStorage.getItem('mysite_visited')) return;
         sessionStorage.setItem('mysite_visited', '1');
       } catch (e) { /* ignore */ }
-      const s = Store.stats();
+      if (MODE === 'server') { api('POST', 'api/visit', {}).catch(() => {}); return; }
+      const s = readJSON(KEYS.stats, { total: 0, days: {} });
       s.total = (s.total || 0) + 1;
       s.days = s.days || {};
       s.days[today()] = (s.days[today()] || 0) + 1;
       writeJSON(KEYS.stats, s);
     },
 
-    checkPassword(data, pw) {
-      const h = data.admin && data.admin.passwordHash;
-      return h ? hash(pw) === h : pw === 'admin123';
+    /* Đăng nhập quản trị */
+    async me() {
+      if (MODE === 'server') { const j = await api('GET', 'api/me'); return { loggedIn: j.loggedIn, mustChange: j.mustChange }; }
+      return { loggedIn: sessionFlag.get(), mustChange: !(DATA.admin && DATA.admin.passwordHash) };
     },
+    async login(pw, remember) {
+      if (MODE === 'server') return api('POST', 'api/login', { password: pw, remember: !!remember });
+      if (!checkLocalPassword(pw)) throw new Error('Sai mật khẩu');
+      sessionFlag.set(remember);
+      return { ok: true, mustChange: !(DATA.admin && DATA.admin.passwordHash) };
+    },
+    async logout() { if (MODE === 'server') await api('POST', 'api/logout', {}); sessionFlag.clear(); },
+    async changePassword(old, pw) {
+      if (MODE === 'server') return api('POST', 'api/password', { old, password: pw });
+      if (!checkLocalPassword(old)) throw new Error('Mật khẩu hiện tại không đúng');
+      if (pw.length < 6) throw new Error('Mật khẩu mới cần ít nhất 6 ký tự');
+      const d = localData(); d.admin = { passwordHash: hash(pw) }; writeJSON(KEYS.data, d);
+      DATA.admin = d.admin;
+    },
+
+    /* Telegram (chỉ khi chạy trên máy chủ) */
+    telegram: {
+      get: async () => (await api('GET', 'api/telegram')).telegram,
+      save: async body => (await api('PUT', 'api/telegram', body)).telegram,
+      detect: async () => (await api('POST', 'api/telegram/detect', {})).chats,
+      test: () => api('POST', 'api/telegram/test', {})
+    },
+
+    /* Sao lưu */
+    async exportBackup() {
+      if (MODE === 'server') return api('GET', 'api/backup');
+      const d = clone(DATA); delete d.admin;
+      return { app: 'mysite', exportedAt: new Date().toISOString(), data: d, messages: readJSON(KEYS.messages, []) };
+    },
+    async importBackup(payload) {
+      const d = payload.data || payload;
+      if (!d || !d.general || !d.sections) throw new Error('File sao lưu không hợp lệ');
+      if (MODE === 'server') await api('POST', 'api/backup', { data: d, messages: payload.messages });
+      else {
+        d.admin = DATA.admin; writeJSON(KEYS.data, d);
+        if (Array.isArray(payload.messages)) writeJSON(KEYS.messages, payload.messages);
+      }
+      DATA = merge(DEFAULT_DATA, d);
+    },
+
+    /* Nhạc tải lên: máy chủ → thư mục uploads/music; xem trước → IndexedDB */
+    async uploadMusic(file) {
+      if (MODE === 'server') {
+        const j = await api('POST', 'api/music', undefined, { body: file, type: file.type, name: file.name });
+        return { id: uid('u'), type: 'upload', url: j.url, file: j.file, size: j.size };
+      }
+      const id = uid('u'); await AudioDB.put(id, file);
+      return { id, type: 'upload', size: file.size };
+    },
+    async deleteMusic(track) {
+      if (track.file && MODE === 'server') return api('DELETE', 'api/music/' + encodeURIComponent(track.file)).catch(() => {});
+      if (!track.url) return AudioDB.del(track.id).catch(() => {});
+    },
+
     hash,
     uid,
     onColor,

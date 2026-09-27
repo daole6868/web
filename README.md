@@ -20,7 +20,18 @@ Zenless Zone Zero, Arknights: Endfield, Neverness to Everness) — hiệu ứng 
 - **Chọn phong cách chính thức**: Trang quản trị → *Giao diện & Hiệu ứng* → *Phong cách game* → **Lưu**.
 - Phong cách chỉ dùng màu sắc, phông chữ và hoạ tiết tự vẽ — **không dùng logo hay hình ảnh chính thức** của các game.
 
-📐 Xem kế hoạch thiết kế chi tiết: **[KE-HOACH.md](KE-HOACH.md)**
+📐 Kế hoạch thiết kế: **[KE-HOACH.md](KE-HOACH.md)** · 🚀 Đưa lên VPS: **[DEPLOY.md](DEPLOY.md)**
+
+## 🖥️ Hai chế độ chạy
+
+| | Mở file trực tiếp (xem trước) | Chạy cùng máy chủ `server/server.js` (VPS) |
+|---|---|---|
+| Admin sửa nội dung | Chỉ máy bạn thấy | **Mọi khách thấy ngay** |
+| Tin nhắn form liên hệ | Lưu trong trình duyệt | Lưu trên VPS + **báo Telegram** |
+| Mật khẩu admin | Kiểm tra trên trình duyệt | Mã hoá & kiểm tra trên máy chủ |
+| Nhạc tải lên | Lưu trong trình duyệt | Lưu trong `uploads/` trên VPS |
+
+Website tự nhận biết chế độ — không cần cấu hình gì.
 
 ---
 
@@ -31,7 +42,13 @@ Zenless Zone Zero, Arknights: Endfield, Neverness to Everness) — hiệu ứng 
 2. Nhấp đúp file **`index.html`** → mở bằng **Chrome** hoặc **Edge**.
 3. Trang quản trị: mở **`admin.html`** — mật khẩu mặc định: **`admin123`**.
 
-### Cách 2 — Chạy bằng máy chủ cục bộ (khuyên dùng, ổn định nhất)
+### Cách 2 — Chạy đầy đủ tính năng như trên VPS (cần Node.js 18+)
+```bash
+node server/server.js
+```
+Mở <http://localhost:3000> — trang quản trị: <http://localhost:3000/admin> (mật khẩu đầu `admin123`).
+
+### Cách 3 — Chạy bằng máy chủ tĩnh đơn giản
 - **Windows**: nhấp đúp **`start-windows.bat`**
 - **macOS / Linux**: mở Terminal trong thư mục, chạy `sh start-mac-linux.sh`
 - Hoặc tự chạy: `python -m http.server 8000` rồi mở <http://localhost:8000>
@@ -63,5 +80,5 @@ Sao lưu/khôi phục • Đổi mật khẩu. Lưu bằng nút **Lưu thay đ�
 - Trình duyệt luôn chặn nhạc tự phát: bật *Tự phát khi khách chạm vào trang* hoặc *Màn hình chào* để nhạc bắt đầu ngay khi khách tương tác.
 - Phông chữ & bản đồ Google cần có Internet; khi offline trang vẫn chạy với phông hệ thống.
 
-> ⚠️ Mật khẩu quản trị ở bản này chỉ bảo vệ trên trình duyệt (phù hợp xem trước / dùng cá nhân).
-> Khi đưa lên mạng thật, hãy kết nối backend — xem mục 8 trong [KE-HOACH.md](KE-HOACH.md).
+> 🔒 Khi chạy cùng `server/server.js` (trên VPS), mật khẩu quản trị được mã hoá và kiểm tra trên máy chủ.
+> Ở chế độ mở file trực tiếp, mật khẩu chỉ bảo vệ trên trình duyệt — chỉ dùng để xem trước.

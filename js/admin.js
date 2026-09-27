@@ -1,10 +1,13 @@
 /* ==========================================================================
    admin.js — Trang quản trị: chỉnh sửa toàn bộ nội dung, giao diện, nhạc,
    bố cục; xem tin nhắn; sao lưu / khôi phục; đổi mật khẩu.
-   Dữ liệu lưu trong trình duyệt (localStorage) và được trang chính đọc lại.
+   Chạy cùng server/server.js: dữ liệu lưu trên máy chủ (VPS).
+   Mở trực tiếp file trên máy: dữ liệu lưu trong trình duyệt (bản xem trước).
    ========================================================================== */
-(function () {
+(async function () {
   'use strict';
+
+  await Store.init();
 
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -14,6 +17,11 @@
   let draft = Store.clone(saved);
   let dirty = false;
   let page = 'dashboard';
+  let msgCache = [];          // tin nhắn tải gần nhất (để hiện số chưa đọc)
+  let mustChange = false;     // đang dùng mật khẩu mặc định
+  let pendingDeletes = [];    // file nhạc chờ xoá khỏi máy chủ sau khi bấm Lưu
+  const serverMode = Store.isServer();
+  async function loadMessages() { msgCache = await Store.messages(); return msgCache; }
 
   /* ---------------- Tiện ích ---------------- */
   function getPath(o, path) { return path.split('.').reduce((a, k) => (a == null ? a : a[k]), o); }
@@ -147,17 +155,32 @@
     $('#dirty').hidden = !dirty; $('#discard').hidden = !dirty;
     $('#save').classList.toggle('pulse-save', dirty);
   }
-  function save() {
-    if (!Store.save(draft)) { toast('Không lưu được — bộ nhớ trình duyệt đầy?', 'err'); return; }
+  let saving = false;
+  async function save() {
+    if (saving) return;
+    saving = true; $('#save').disabled = true;
+    try {
+      await Store.save(draft);
+    } catch (err) {
+      toast('Không lưu được: ' + err.message, 'err');
+      if (err.status === 401) sessionExpired();
+      return;
+    } finally { saving = false; $('#save').disabled = false; }
     saved = Store.clone(draft); markDirty();
+    pendingDeletes.splice(0).forEach(t => Store.deleteMusic(t));
     toast('Đã lưu thay đổi — trang chủ đã được cập nhật', 'ok');
     refreshChrome();
+    try { new BroadcastChannel('mysite').postMessage('saved'); } catch (e) { /* noop */ }
+  }
+  function sessionExpired() {
+    toast('Phiên đăng nhập đã hết — vui lòng đăng nhập lại (bản nháp vẫn được giữ)', 'err');
+    $('#app').hidden = true; $('#login').hidden = false; $('#login-pw').value = ''; $('#login-pw').focus();
   }
   $('#save').innerHTML = icon('check') + '<span>Lưu thay đổi</span>';
   $('#save').onclick = save;
   $('#discard').onclick = async () => {
     if (!(await confirmBox('Huỷ thay đổi?', 'Mọi chỉnh sửa chưa lưu sẽ bị mất.', 'Huỷ thay đổi', true))) return;
-    draft = Store.clone(saved); markDirty(); go(page); toast('Đã khôi phục bản đã lưu');
+    draft = Store.clone(saved); pendingDeletes = []; markDirty(); go(page); toast('Đã khôi phục bản đã lưu');
   };
   document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && !$('#app').hidden) { e.preventDefault(); save(); } });
   window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
@@ -249,8 +272,8 @@
   const PAGES = {
     dashboard: {
       label: 'Tổng quan', icon: 'home', group: 'Chung', desc: 'Số liệu nhanh về website của bạn',
-      render() {
-        const st = Store.stats(), msgs = Store.messages(), unread = msgs.filter(m => !m.read).length;
+      async render() {
+        const [st, msgs] = await Promise.all([Store.stats(), loadMessages()]), unread = msgs.filter(m => !m.read).length;
         const days = [];
         for (let i = 6; i >= 0; i--) {
           const d = new Date(); d.setDate(d.getDate() - i);
@@ -265,7 +288,7 @@
           kpi('inbox', unread + ' / ' + msgs.length, 'Tin nhắn chưa đọc') +
           kpi('layers', draft.services.filter(s => s.visible !== false).length, 'Dịch vụ đang hiển thị') +
         '</div><div class="grid-2">' +
-          panel('Lượt truy cập 7 ngày', 'chart', 'Đếm mỗi phiên truy cập trên trình duyệt này', '<div class="chart">' + days.map((d, i) =>
+          panel('Lượt truy cập 7 ngày', 'chart', serverMode ? 'Đếm mỗi phiên truy cập của khách' : 'Bản xem trước: chỉ đếm trên trình duyệt này', '<div class="chart">' + days.map((d, i) =>
             '<div class="chart__col"><div class="chart__bar" style="height:' + Math.max(3, d.v / max * 100) + '%;animation-delay:' + (i * 60) + 'ms"><em>' + d.v + '</em></div><small>' + esc(d.label) + '</small></div>').join('') + '</div>') +
           panel('Thao tác nhanh', 'zap', '', '<div class="quick">' +
             [['general', 'edit', 'Sửa nội dung'], ['theme', 'palette', 'Đổi màu sắc'], ['services', 'layers', 'Quản lý dịch vụ'], ['music', 'music', 'Nhạc nền'], ['sections', 'layout', 'Ẩn / hiện mục'], ['backup', 'download', 'Sao lưu']]
@@ -274,7 +297,9 @@
         panel('Tin nhắn mới nhất', 'inbox', '', msgs.length ? '<div class="list">' + msgs.slice(0, 4).map(m =>
           '<div class="row"><div class="row__icon">' + esc(initials(m.name)) + '</div><div class="row__body"><b>' + esc(m.name) + (m.read ? '' : '<span class="pill">Mới</span>') + '</b><span>' + esc(m.message) + '</span></div><small class="muted">' + fmtDate(m.date) + '</small></div>').join('') + '</div>'
           : '<div class="empty">' + icon('inbox') + '<div>Chưa có tin nhắn nào</div></div>', '<button class="btn btn--ghost btn--sm" data-go="messages">Xem tất cả</button>') +
-        '<div class="tip">' + icon('lightbulb') + '<p><b>Mẹo:</b> Mở trang chủ ở một tab khác — mỗi lần bấm <b>Lưu thay đổi</b> (hoặc Ctrl + S), trang chủ sẽ tự tải lại với nội dung mới. Dữ liệu được lưu trong trình duyệt này; hãy dùng mục <b>Sao lưu</b> để chuyển sang máy khác.</p></div>';
+        '<div class="tip">' + icon(serverMode ? 'shield' : 'lightbulb') + '<p>' + (serverMode
+          ? '<b>Đang chạy trên máy chủ:</b> mỗi lần bấm <b>Lưu thay đổi</b> (hoặc Ctrl + S), mọi khách truy cập đều thấy nội dung mới ngay. Tin nhắn của khách được lưu trên máy chủ' + ' và báo về Telegram nếu bạn đã bật.'
+          : '<b>Bản xem trước:</b> dữ liệu đang lưu trong trình duyệt này — khách khác sẽ không thấy. Khi đưa lên VPS (chạy <code>server/server.js</code>), mọi thay đổi sẽ áp dụng cho toàn bộ khách. Xem <b>DEPLOY.md</b>.') + '</p></div>';
       }
     },
 
@@ -287,6 +312,7 @@
           { key: 'general.tagline', label: 'Khẩu hiệu (tagline)', type: 'text', full: true },
           { key: 'general.seoDescription', label: 'Mô tả SEO (hiển thị trên Google)', type: 'textarea', rows: 2 },
           { key: 'general.footerText', label: 'Giới thiệu ngắn ở chân trang', type: 'textarea', rows: 2 },
+          { key: 'general.copyright', label: 'Dòng bản quyền cuối trang', type: 'text', full: true, hint: 'Viết {year} để tự hiện năm hiện tại. VD: © {year} NOVA BOOST. Mọi quyền được bảo lưu.' },
           { key: 'general.showAdminLink', label: 'Hiện liên kết “Quản trị” ở chân trang', type: 'toggle' }
         ], draft)) +
         panel('Thanh thông báo', 'bell', 'Dải thông báo nổi bật ở đầu trang (khuyến mãi, tin mới…)', form([
@@ -472,15 +498,17 @@
         $('#add-url').onclick = () => editItem(Object.assign({}, CFG.tracks, { make: () => ({ id: Store.uid('t'), type: 'url', title: '', artist: '', url: '' }) }), -1, rr);
         $('#music-upload').onchange = async e => {
           const files = Array.from(e.target.files || []);
+          let added = 0;
           for (const f of files) {
             if (f.size > 40 * 1024 * 1024) { toast('File quá lớn (>40MB): ' + f.name, 'err'); continue; }
-            const id = Store.uid('u');
+            toast('Đang tải lên: ' + f.name + '…');
             try {
-              await AudioDB.put(id, f);
-              draft.music.tracks.push({ id, type: 'upload', title: f.name.replace(/\.[^.]+$/, ''), artist: 'Tải lên', size: f.size });
-            } catch (err) { toast('Không lưu được file: ' + f.name, 'err'); }
+              const t = await Store.uploadMusic(f);
+              draft.music.tracks.push(Object.assign(t, { title: f.name.replace(/\.[^.]+$/, ''), artist: 'Tải lên' }));
+              added++;
+            } catch (err) { toast('Không tải lên được ' + f.name + ': ' + err.message, 'err'); }
           }
-          markDirty(); rr(); if (files.length) toast('Đã thêm ' + files.length + ' bài — bấm Lưu để áp dụng', 'ok');
+          markDirty(); rr(); if (added) toast('Đã thêm ' + added + ' bài — bấm Lưu để áp dụng', 'ok');
         };
       }
     },
@@ -488,8 +516,8 @@
     messages: {
       label: 'Tin nhắn', icon: 'inbox', group: 'Khách hàng', desc: 'Lời nhắn khách gửi qua form liên hệ',
       filter: 'all', q: '',
-      render() {
-        const all = Store.messages();
+      async render() {
+        const all = await loadMessages();
         const q = this.q.toLowerCase();
         const list = all.filter(m => (this.filter === 'all' || !m.read) && (!q || JSON.stringify(m).toLowerCase().indexOf(q) >= 0));
         return panel('Hộp thư', 'inbox', all.length + ' tin nhắn • ' + all.filter(m => !m.read).length + ' chưa đọc',
@@ -509,21 +537,68 @@
         const self = this, rr = () => { go('messages', true); refreshChrome(); };
         $$('[data-f]').forEach(b => b.onclick = () => { self.filter = b.dataset.f; rr(); });
         const qi = $('#msg-q'); qi.oninput = () => { self.q = qi.value; clearTimeout(self._t); self._t = setTimeout(() => { rr(); const n = $('#msg-q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); };
+        const act = async fn => { try { await fn(); rr(); } catch (err) { toast(err.message, 'err'); if (err.status === 401) sessionExpired(); } };
         $('#view').onclick = async e => {
           const b = e.target.closest('[data-m]'); if (!b) return;
-          const id = b.closest('.msg').dataset.id, all = Store.messages(), m = all.find(x => x.id === id);
-          if (b.dataset.m === 'read') { m.read = !m.read; Store.saveMessages(all); rr(); }
-          if (b.dataset.m === 'del' && await confirmBox('Xoá tin nhắn?', 'Tin nhắn của ' + m.name + ' sẽ bị xoá vĩnh viễn.', 'Xoá', true)) { Store.saveMessages(all.filter(x => x.id !== id)); rr(); toast('Đã xoá tin nhắn'); }
+          const id = b.closest('.msg').dataset.id, m = msgCache.find(x => x.id === id); if (!m) return;
+          if (b.dataset.m === 'read') act(() => Store.setRead(id, !m.read));
+          if (b.dataset.m === 'del' && await confirmBox('Xoá tin nhắn?', 'Tin nhắn của ' + m.name + ' sẽ bị xoá vĩnh viễn.', 'Xoá', true)) { await act(() => Store.deleteMessage(id)); toast('Đã xoá tin nhắn'); }
         };
-        $('#msg-readall').onclick = () => { Store.saveMessages(Store.messages().map(m => Object.assign(m, { read: true }))); rr(); };
-        $('#msg-clear').onclick = async () => { if (await confirmBox('Xoá tất cả tin nhắn?', 'Không thể hoàn tác.', 'Xoá hết', true)) { Store.saveMessages([]); rr(); } };
+        $('#msg-readall').onclick = () => act(() => Store.readAll());
+        $('#msg-clear').onclick = async () => { if (await confirmBox('Xoá tất cả tin nhắn?', 'Không thể hoàn tác.', 'Xoá hết', true)) act(() => Store.clearMessages()); };
         $('#msg-csv').onclick = () => {
-          const rows = [['Ngày', 'Họ tên', 'Điện thoại', 'Game / Server / UID', 'Email', 'Dịch vụ', 'Nội dung', 'Đã đọc']].concat(Store.messages().map(m => [fmtDate(m.date), m.name, m.phone, m.uid, m.email, m.service, m.message, m.read ? 'Có' : 'Chưa']));
+          const rows = [['Ngày', 'Họ tên', 'Điện thoại', 'Game / Server / UID', 'Email', 'Dịch vụ', 'Nội dung', 'Đã đọc']].concat(msgCache.map(m => [fmtDate(m.date), m.name, m.phone, m.uid, m.email, m.service, m.message, m.read ? 'Có' : 'Chưa']));
           const csv = '﻿' + rows.map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n');
           download('tin-nhan-' + new Date().toISOString().slice(0, 10) + '.csv', csv, 'text/csv;charset=utf-8');
         };
       },
       leave() { $('#view').onclick = null; }
+    },
+
+    telegram: {
+      label: 'Thông báo Telegram', icon: 'send', group: 'Hệ thống', desc: 'Nhận đơn mới qua Telegram',
+      async render() {
+        if (!serverMode) return panel('Thông báo Telegram', 'send', '', '<div class="tip">' + icon('lightbulb') + '<p>Tính năng này hoạt động khi website chạy trên VPS (cùng <code>server/server.js</code>). Ở bản xem trước trên máy, tin nhắn chỉ lưu trong trình duyệt.</p></div>');
+        const tg = await Store.telegram.get();
+        return '<div class="grid-2"><div>' +
+          panel('Cài đặt bot', 'settings', 'Khi khách gửi form liên hệ, bot sẽ nhắn ngay cho bạn.',
+            '<div class="form-grid">' +
+              '<label class="toggle full"><div><b>Bật thông báo Telegram</b><small>' + (tg.enabled ? 'Đang bật' : 'Đang tắt') + '</small></div><span class="switch"><input type="checkbox" id="tg-enabled"' + (tg.enabled ? ' checked' : '') + '><span></span></span></label>' +
+              '<div class="field full"><label for="tg-token">Token bot</label><input id="tg-token" type="password" autocomplete="off" placeholder="' + (tg.hasToken ? 'Đã lưu: ' + esc(tg.tokenHint) + ' — để trống nếu không đổi' : '123456789:AAH...') + '"><small class="field__hint">Token chỉ lưu trên máy chủ, không bao giờ hiện ra trang web.</small></div>' +
+              '<div class="field full"><label for="tg-chat">Chat ID</label><div class="color-field"><input id="tg-chat" value="' + esc(tg.chatId) + '" placeholder="VD: 123456789 hoặc -100123… (nhóm)"><button class="btn btn--ghost" id="tg-detect" type="button">' + icon('search') + 'Tự tìm</button></div></div>' +
+            '</div>' +
+            '<div class="toolbar" style="margin-top:18px"><button class="btn btn--primary" id="tg-save">' + icon('check') + 'Lưu cài đặt</button><button class="btn btn--ghost" id="tg-test">' + icon('send') + 'Gửi thử</button></div>' +
+            '<div id="tg-chats" style="margin-top:14px"></div>') +
+        '</div><div>' +
+          panel('Hướng dẫn 1 phút', 'help', '',
+            '<ol style="margin:0;padding-left:20px;display:grid;gap:10px;color:var(--muted)">' +
+              '<li>Mở Telegram, tìm <b>@BotFather</b> → gửi <code>/newbot</code> → đặt tên → nhận <b>token</b>.</li>' +
+              '<li>Dán token vào ô bên trái → bấm <b>Lưu cài đặt</b>.</li>' +
+              '<li>Mở bot vừa tạo và bấm <b>Start</b> (hoặc thêm bot vào nhóm và nhắn 1 tin trong nhóm).</li>' +
+              '<li>Bấm <b>Tự tìm</b> để lấy Chat ID → chọn → <b>Lưu cài đặt</b>.</li>' +
+              '<li>Bật công tắc, bấm <b>Gửi thử</b> — điện thoại sẽ nhận tin ✅.</li>' +
+            '</ol>') +
+        '</div></div>';
+      },
+      after() {
+        if (!serverMode) return;
+        const saveTg = async quiet => {
+          const body = { enabled: $('#tg-enabled').checked, chatId: $('#tg-chat').value.trim() };
+          const tok = $('#tg-token').value.trim(); if (tok) body.token = tok;
+          await Store.telegram.save(body); if (!quiet) toast('Đã lưu cài đặt Telegram', 'ok');
+        };
+        $('#tg-save').onclick = async () => { try { await saveTg(); go('telegram', true); } catch (err) { toast(err.message, 'err'); } };
+        $('#tg-test').onclick = async () => { try { await saveTg(true); await Store.telegram.test(); toast('Đã gửi tin thử — kiểm tra Telegram nhé!', 'ok'); } catch (err) { toast(err.message, 'err'); } };
+        $('#tg-detect').onclick = async () => {
+          try {
+            if ($('#tg-token').value.trim()) await saveTg(true);
+            const chats = await Store.telegram.detect();
+            $('#tg-chats').innerHTML = chats.length ? '<div class="list">' + chats.map(c => '<button class="row" data-chat="' + esc(c.id) + '" style="text-align:left"><div class="row__icon">' + icon(c.type === 'private' ? 'user' : 'users') + '</div><div class="row__body"><b>' + esc(c.title || c.id) + '</b><span>' + esc(c.type) + ' • ' + esc(c.id) + '</span></div></button>').join('') + '</div>'
+              : '<div class="tip">' + icon('help') + '<p>Chưa thấy cuộc trò chuyện nào. Hãy mở bot và bấm <b>Start</b> (hoặc nhắn 1 tin), rồi bấm <b>Tự tìm</b> lại.</p></div>';
+            $$('[data-chat]').forEach(b => b.onclick = () => { $('#tg-chat').value = b.dataset.chat; toast('Đã chọn — bấm Lưu cài đặt'); });
+          } catch (err) { toast(err.message, 'err'); }
+        };
+      }
     },
 
     backup: {
@@ -533,20 +608,23 @@
           panel('Sao lưu dữ liệu', 'download', 'Tải toàn bộ cấu hình website thành file .json để lưu trữ hoặc chuyển sang máy khác.',
             '<div class="toolbar"><button class="btn btn--primary" id="bk-export">' + icon('download') + 'Tải file sao lưu</button>' +
             '<label class="btn btn--ghost file-btn">' + icon('upload') + 'Khôi phục từ file<input type="file" id="bk-import" accept=".json,application/json"></label></div>' +
-            '<p class="field__hint" style="margin-top:14px">Lưu ý: file nhạc tải lên (lưu trong trình duyệt) không nằm trong file sao lưu. Nhạc tích hợp và link nhạc thì có.</p>') +
+            '<p class="field__hint" style="margin-top:14px">Lưu ý: file sao lưu gồm nội dung + tin nhắn. File nhạc tải lên không nằm trong đó' + (serverMode ? ' (chúng ở thư mục uploads/ trên VPS).' : '.') + '</p>') +
           panel('Khôi phục mặc định', 'repeat', 'Đưa toàn bộ nội dung & giao diện về mẫu ban đầu.',
             '<div class="toolbar"><button class="btn btn--danger" id="bk-reset">' + icon('trash') + 'Khôi phục mặc định</button><button class="btn btn--ghost" id="bk-stats">' + icon('chart') + 'Xoá thống kê truy cập</button></div>') +
         '</div><div>' +
-          panel('Đổi mật khẩu quản trị', 'lock', saved.admin.passwordHash ? 'Bạn đang dùng mật khẩu riêng.' : 'Bạn đang dùng mật khẩu mặc định “admin123” — hãy đổi ngay!',
+          panel('Đổi mật khẩu quản trị', 'lock', mustChange ? 'Bạn đang dùng mật khẩu mặc định “admin123” — hãy đổi ngay!' : 'Bạn đang dùng mật khẩu riêng.',
             '<div class="form-grid"><div class="field full"><label>Mật khẩu hiện tại</label><input type="password" id="pw-old"></div>' +
             '<div class="field"><label>Mật khẩu mới</label><input type="password" id="pw-new"></div><div class="field"><label>Nhập lại</label><input type="password" id="pw-new2"></div></div>' +
             '<div style="margin-top:16px"><button class="btn btn--primary" id="pw-save">' + icon('check') + 'Đổi mật khẩu</button></div>') +
-          '<div class="tip">' + icon('shield') + '<p>Trang quản trị này là bản <b>chạy trên trình duyệt</b> để bạn xem trước & tự chỉnh nội dung. Khi đưa website lên mạng thật, nên kết nối máy chủ (backend) để lưu dữ liệu và bảo mật đăng nhập — xem file <b>KE-HOACH.md</b>.</p></div>' +
+          '<div class="tip">' + icon('shield') + '<p>' + (serverMode
+            ? 'Mật khẩu được mã hoá và kiểm tra trên máy chủ. Đổi mật khẩu sẽ đăng xuất mọi thiết bị khác. Quên mật khẩu? Đặt lại trên VPS bằng lệnh trong <b>DEPLOY.md</b>.'
+            : 'Đây là <b>bản xem trước</b> — mật khẩu chỉ bảo vệ trên trình duyệt này. Khi chạy trên VPS, mật khẩu được kiểm tra trên máy chủ.') + '</p></div>' +
         '</div></div>';
       },
       after() {
-        $('#bk-export').onclick = () => {
-          const payload = { app: 'mysite', exportedAt: new Date().toISOString(), data: saved, messages: Store.messages() };
+        $('#bk-export').onclick = async () => {
+          let payload;
+          try { payload = await Store.exportBackup(); } catch (err) { return toast(err.message, 'err'); }
           download('sao-luu-website-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(payload, null, 2));
           toast('Đã tải file sao lưu', 'ok');
         };
@@ -555,31 +633,33 @@
           const rd = new FileReader();
           rd.onload = async () => {
             try {
-              const j = JSON.parse(rd.result), d = j.data || j;
-              if (!d.general || !d.sections) throw new Error('bad');
+              let j;
+              try { j = JSON.parse(rd.result); } catch (err) { return toast('File không hợp lệ', 'err'); }
+              const d = j.data || j;
+              if (!d || !d.general || !d.sections) return toast('File không hợp lệ', 'err');
               if (!(await confirmBox('Khôi phục dữ liệu?', 'Nội dung hiện tại sẽ bị thay thế bằng dữ liệu trong file.', 'Khôi phục'))) return;
-              Store.save(d); if (Array.isArray(j.messages)) Store.saveMessages(j.messages);
+              await Store.importBackup(j);
               saved = Store.load(); draft = Store.clone(saved); markDirty(); refreshChrome(); go('dashboard');
               toast('Khôi phục thành công', 'ok');
-            } catch (err) { toast('File không hợp lệ', 'err'); }
+            } catch (err) { toast('Không khôi phục được: ' + err.message, 'err'); }
           };
           rd.readAsText(f);
         };
         $('#bk-reset').onclick = async () => {
           if (!(await confirmBox('Khôi phục mặc định?', 'Toàn bộ nội dung sẽ trở về mẫu ban đầu (tin nhắn và mật khẩu được giữ lại).', 'Khôi phục', true))) return;
-          const pw = saved.admin; const d = Store.defaults(); d.admin = pw;
-          Store.save(d); saved = Store.load(); draft = Store.clone(saved); markDirty(); refreshChrome(); go('backup');
+          try { await Store.reset(); } catch (err) { return toast(err.message, 'err'); }
+          saved = Store.load(); draft = Store.clone(saved); markDirty(); refreshChrome(); go('backup');
           toast('Đã khôi phục mặc định', 'ok');
         };
-        $('#bk-stats').onclick = async () => { if (await confirmBox('Xoá thống kê?', 'Số lượt truy cập sẽ về 0.', 'Xoá', true)) { localStorage.removeItem(Store.KEYS.stats); toast('Đã xoá thống kê'); } };
-        $('#pw-save').onclick = () => {
+        $('#bk-stats').onclick = async () => { if (await confirmBox('Xoá thống kê?', 'Số lượt truy cập sẽ về 0.', 'Xoá', true)) { try { await Store.clearStats(); toast('Đã xoá thống kê'); } catch (err) { toast(err.message, 'err'); } } };
+        $('#pw-save').onclick = async () => {
           const o = $('#pw-old').value, n = $('#pw-new').value, n2 = $('#pw-new2').value;
-          if (!Store.checkPassword(saved, o)) return toast('Mật khẩu hiện tại không đúng', 'err');
-          if (n.length < 6) return toast('Mật khẩu mới cần ít nhất 6 ký tự', 'err');
+          if (n.length < 8) return toast('Mật khẩu mới cần ít nhất 8 ký tự', 'err');
           if (n !== n2) return toast('Mật khẩu nhập lại không khớp', 'err');
-          const h = Store.hash(n);
-          saved.admin = { passwordHash: h }; draft.admin = { passwordHash: h };
-          Store.save(saved); markDirty(); go('backup', true);
+          try { await Store.changePassword(o, n); } catch (err) { return toast(err.message, 'err'); }
+          mustChange = false;
+          const adm = Store.load().admin; if (adm) { saved.admin = adm; draft.admin = Store.clone(adm); }
+          markDirty(); go('backup', true);
           toast('Đã đổi mật khẩu', 'ok');
         };
       }
@@ -654,14 +734,14 @@
       fields: it => [{ key: 'title', label: 'Tên bài', type: 'text', required: true }, { key: 'artist', label: 'Nghệ sĩ / ghi chú', type: 'text' }].concat(
         it.type === 'synth' ? [{ key: 'preset', label: 'Giai điệu', type: 'select', options: Object.keys(MUSIC_PRESETS).map(k => [k, MUSIC_PRESETS[k]]) }] :
         it.type === 'url' ? [{ key: 'url', label: 'Đường dẫn file nhạc (.mp3)', type: 'text', full: true, required: true, placeholder: 'https://.../bai-hat.mp3 hoặc music/bai-hat.mp3' }] : []),
-      onDelete: it => { if (it.type === 'upload') AudioDB.del(it.id).catch(() => {}); }
+      onDelete: it => { if (it.type === 'upload') pendingDeletes.push(it); } // xoá file thật sau khi bấm Lưu
     }
   };
 
   /* ---------------- Điều hướng ---------------- */
   function buildNav() {
     let html = '', grp = '';
-    const unread = Store.messages().filter(m => !m.read).length;
+    const unread = msgCache.filter(m => !m.read).length;
     Object.keys(PAGES).forEach(k => {
       const p = PAGES[k];
       if (p.group !== grp) { grp = p.group; html += '<div class="side-group">' + esc(grp) + '</div>'; }
@@ -676,16 +756,24 @@
     $('#brand-name').textContent = saved.general.siteName;
     document.title = 'Quản trị — ' + saved.general.siteName;
   }
-  function go(k, keepScroll) {
+  let goSeq = 0;
+  async function go(k, keepScroll) {
     if (!PAGES[k]) k = 'dashboard';
     if (PAGES[page] && PAGES[page].leave) PAGES[page].leave();
-    const y = window.scrollY;
+    const y = window.scrollY, seq = ++goSeq;
     page = k;
     const p = PAGES[k];
     $('#page-title').textContent = p.label; $('#page-desc').textContent = p.desc || '';
+    let html;
+    try { html = await p.render(); } catch (err) {
+      if (err.status === 401) return sessionExpired();
+      html = '<div class="tip">' + icon('help') + '<p>Không tải được dữ liệu: ' + esc(err.message) + '</p></div>';
+    }
+    if (seq !== goSeq) return; // người dùng đã chuyển trang khác
     const v = $('#view');
     v.style.animation = keepScroll ? 'none' : ''; if (!keepScroll) { void v.offsetWidth; v.style.animation = ''; }
-    v.innerHTML = p.render();
+    v.innerHTML = html;
+    if (k === 'messages' || k === 'dashboard') buildNav();
     if (p.after) p.after.call(p);
     $$('.side-link[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === k));
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -714,26 +802,35 @@
 
   // Cập nhật khi có tin nhắn mới (từ tab trang chủ)
   window.addEventListener('storage', e => {
-    if (e.key === Store.KEYS.messages) { refreshChrome(); if (page === 'messages' || page === 'dashboard') go(page, true); toast('Có tin nhắn mới!'); }
+    if (e.key === Store.KEYS.messages) { loadMessages().then(refreshChrome); if (page === 'messages' || page === 'dashboard') go(page, true); toast('Có tin nhắn mới!'); }
   });
 
   /* ---------------- Đăng nhập ---------------- */
-  function isLogged() {
-    try { return sessionStorage.getItem(Store.KEYS.session) === '1' || localStorage.getItem(Store.KEYS.session) === '1'; } catch (e) { return false; }
-  }
-  function enterApp() {
+  let started = false;
+  async function enterApp() {
     $('#login').hidden = true; $('#app').hidden = false;
+    if (started) return; // đăng nhập lại sau khi hết phiên: giữ nguyên bản nháp
+    started = true;
     MusicPlayer.init([], {});
+    loadMessages().then(buildNav).catch(() => {});
+    // Máy chủ: kiểm tra tin nhắn mới mỗi 60 giây
+    if (serverMode) setInterval(async () => {
+      if (document.hidden || $('#app').hidden) return;
+      const before = msgCache.filter(m => !m.read).length;
+      try { await loadMessages(); } catch (e) { return; }
+      const after = msgCache.filter(m => !m.read).length;
+      if (after > before) { toast('Có ' + (after - before) + ' tin nhắn mới!'); buildNav(); if (page === 'messages' || page === 'dashboard') go(page, true); }
+    }, 60000);
     $('#view-site').innerHTML = icon('external') + '<span>Xem trang chủ</span>';
     $('#logout').innerHTML = icon('logout') + '<span>Đăng xuất</span>';
     $('#side-toggle').innerHTML = icon('menu');
     refreshChrome();
     go((location.hash || '#dashboard').slice(1));
-    if (!saved.admin.passwordHash) setTimeout(() => toast('Bạn đang dùng mật khẩu mặc định — nên đổi trong mục Sao lưu & Bảo mật'), 1200);
+    if (mustChange) setTimeout(() => toast('Bạn đang dùng mật khẩu mặc định — nên đổi trong mục Sao lưu & Bảo mật'), 1200);
   }
   $('#logout').onclick = async () => {
     if (dirty && !(await confirmBox('Đăng xuất?', 'Bạn có thay đổi chưa lưu.', 'Vẫn đăng xuất', true))) return;
-    try { sessionStorage.removeItem(Store.KEYS.session); localStorage.removeItem(Store.KEYS.session); } catch (e) { /* noop */ }
+    try { await Store.logout(); } catch (e) { /* noop */ }
     dirty = false; location.reload();
   };
 
@@ -741,17 +838,22 @@
   $('#login-site').textContent = 'Đăng nhập để quản lý “' + saved.general.siteName + '”';
   $('#pw-eye').innerHTML = icon('eye');
   $('#pw-eye').onclick = () => { const i = $('#login-pw'); i.type = i.type === 'password' ? 'text' : 'password'; $('#pw-eye').innerHTML = icon(i.type === 'password' ? 'eye' : 'eyeOff'); };
-  if (!saved.admin.passwordHash) $('#login-hint').innerHTML = 'Mật khẩu mặc định: <code>admin123</code>';
-  $('#login-form').onsubmit = e => {
+  let me = { loggedIn: false, mustChange: false };
+  try { me = await Store.me(); } catch (e) { toast('Không kết nối được máy chủ', 'err'); }
+  mustChange = me.mustChange;
+  if (mustChange) $('#login-hint').innerHTML = 'Mật khẩu mặc định: <code>admin123</code>';
+  $('#login-form').onsubmit = async e => {
     e.preventDefault();
-    if (Store.checkPassword(saved, $('#login-pw').value)) {
-      try { (($('#login-remember').checked) ? localStorage : sessionStorage).setItem(Store.KEYS.session, '1'); } catch (err) { /* noop */ }
+    const btn = $('#login-form button[type="submit"]'); btn.disabled = true;
+    try {
+      const r = await Store.login($('#login-pw').value, $('#login-remember').checked);
+      mustChange = !!r.mustChange;
       enterApp();
-    } else {
+    } catch (err) {
       const c = $('#login-form'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
-      toast('Sai mật khẩu', 'err'); $('#login-pw').select();
-    }
+      toast(err.message || 'Sai mật khẩu', 'err'); $('#login-pw').select();
+    } finally { btn.disabled = false; }
   };
 
-  if (isLogged()) enterApp();
+  if (me.loggedIn) enterApp();
 })();

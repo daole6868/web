@@ -1,0 +1,25 @@
+# Dịch vụ systemd: tự chạy website khi VPS khởi động, tự bật lại nếu lỗi
+[Unit]
+Description=NOVA BOOST website
+After=network.target
+
+[Service]
+Type=simple
+User=novaboost
+Group=novaboost
+WorkingDirectory=__APP_DIR__
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+ExecStart=/usr/bin/node __APP_DIR__/server/server.js
+Restart=always
+RestartSec=3
+# Bảo mật: tiến trình chỉ được ghi vào data/ và uploads/
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=__APP_DIR__/data __APP_DIR__/uploads
+
+[Install]
+WantedBy=multi-user.target

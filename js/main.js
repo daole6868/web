@@ -1,8 +1,10 @@
 /* ==========================================================================
    main.js — Dựng trang chính từ dữ liệu (Store) và gắn toàn bộ hiệu ứng
    ========================================================================== */
-(function () {
+(async function () {
   'use strict';
+
+  await Store.init(); // tải nội dung từ máy chủ (nếu có) trước khi dựng trang
 
   const D = Store.load();
   const PREVIEW_KEY = 'mysite_skin_preview';
@@ -254,6 +256,7 @@
         '<div class="field field--full"><label for="f-service">Dịch vụ quan tâm</label><select id="f-service" name="service"><option value="">— Chọn dịch vụ —</option>' + opts + '<option>Khác</option></select></div>' +
         '<div class="field field--full"><label for="f-msg">Nội dung *</label><textarea id="f-msg" name="message" placeholder="Bạn cần cày gì? (VD: La Hoàn 36★, daily 1 tháng…)"></textarea><small class="field__err"></small></div>' +
       '</div>' +
+      '<input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">' +
       '<div class="form__foot"><p class="form__note">🔒 Thông tin của bạn được bảo mật.</p><button class="btn btn--primary" type="submit">' + icon('send') + 'Gửi tin nhắn</button></div></form>';
   }
 
@@ -282,7 +285,7 @@
         (c.email ? '<li><a href="mailto:' + esc(c.email) + '">' + icon('mail') + esc(c.email) + '</a></li>' : '') +
         (c.address ? '<li>' + icon('map') + esc(c.address) + '</li>' : '') +
         (c.hours ? '<li>' + icon('clock') + esc(c.hours) + '</li>' : '') + '</ul></div>' +
-      '</div><div class="footer__bottom"><span>© ' + new Date().getFullYear() + ' ' + esc(g.siteName) + '. Mọi quyền được bảo lưu.</span>' +
+      '</div><div class="footer__bottom"><span>' + esc(String(g.copyright || '© {year} ' + g.siteName).replace(/\{year\}/g, new Date().getFullYear())) + '</span>' +
       (g.showAdminLink ? '<a href="admin.html">' + icon('lock') + ' Quản trị</a>' : '') + '</div></div>';
   }
 
@@ -562,15 +565,22 @@
       });
       if (Object.keys(errs).length) { toast('Vui lòng kiểm tra lại thông tin', 'err'); f.elements[Object.keys(errs)[0]].focus(); return; }
       const btn = $('button[type="submit"]', f);
+      const label = btn.innerHTML;
       btn.disabled = true; btn.innerHTML = '<span class="preloader__ring" style="position:static;width:18px;height:18px;border-width:2px"></span> Đang gửi...';
-      setTimeout(() => {
-        Store.addMessage({ name: v('name'), phone: v('phone'), uid: v('uid'), email: v('email'), service: v('service'), message: v('message') });
+      setTimeout(async () => {
+        try {
+          await Store.addMessage({ name: v('name'), phone: v('phone'), uid: v('uid'), email: v('email'), service: v('service'), message: v('message'), website: v('website') });
+        } catch (err) {
+          btn.disabled = false; btn.innerHTML = label;
+          toast(err.message || 'Gửi không thành công, vui lòng thử lại', 'err');
+          return;
+        }
         wrap.innerHTML = '<div class="form-success"><div class="form-success__icon">' + icon('check') + '</div><h3>Gửi thành công!</h3>' +
           '<p style="color:var(--muted)">Cảm ơn ' + esc(v('name')) + '. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.</p>' +
           '<button class="btn btn--ghost" id="form-again">Gửi tin nhắn khác</button></div>';
         toast('Đã gửi lời nhắn thành công', 'ok');
         $('#form-again').onclick = () => { wrap.innerHTML = formHTML(serviceOpts()); };
-      }, 900);
+      }, 500);
     });
     wrap.addEventListener('input', e => { const fld = e.target.closest('.field'); if (fld) fld.classList.remove('invalid'); });
   }
@@ -841,9 +851,9 @@
   }
 
   /* Tự tải lại khi trang quản trị lưu thay đổi (ở tab khác) */
-  window.addEventListener('storage', e => {
-    if (e.key === Store.KEYS.data) { toast('Nội dung vừa được cập nhật — đang tải lại…'); setTimeout(() => location.reload(), 900); }
-  });
+  const liveReload = () => { toast('Nội dung vừa được cập nhật — đang tải lại…'); setTimeout(() => location.reload(), 900); };
+  window.addEventListener('storage', e => { if (e.key === Store.KEYS.data) liveReload(); });
+  try { new BroadcastChannel('mysite').onmessage = e => { if (e.data === 'saved') liveReload(); }; } catch (e) { /* trình duyệt cũ */ }
 
   /* ---------------- Khởi động ---------------- */
   renderAnnounce();
